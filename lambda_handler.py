@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 # ── Bedrock client ────────────────────────────────────────────────────────────
-MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
 
@@ -132,15 +132,24 @@ def save_session(session_id: str, history: list):
 
 # ── Helper: call Bedrock with conversation history ─────────────────────────────
 def call_bedrock(messages: list) -> str:
+    conversation = ""
+    for msg in messages:
+        role = "user" if msg["role"] == "user" else "assistant"
+        conversation += f"<|start_header_id|>{role}<|end_header_id|>\n{msg['content']}\n<|eot_id|>"
+
+    prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+{SYSTEM_PROMPT}
+<|eot_id|>{conversation}<|start_header_id|>assistant<|end_header_id|>"""
+
     body = json.dumps({
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1000,
-        "system": SYSTEM_PROMPT,
-        "messages": messages
+        "prompt": prompt,
+        "max_gen_len": 1000,
+        "temperature": 0.7,
+        "top_p": 0.9
     })
     response = bedrock.invoke_model(modelId=MODEL_ID, body=body)
     result = json.loads(response["body"].read())
-    return result["content"][0]["text"]
+    return result["generation"].strip()
 
 # ── CORS headers for API Gateway ─────────────────────────────────────────────
 CORS_HEADERS = {

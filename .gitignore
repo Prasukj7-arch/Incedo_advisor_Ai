@@ -20,3 +20,10 @@ Icon
 # Data
 data/
 *.log
+
+.venv/
+*.zip
+response.json
+.env
+__pycache__/
+AWSCLIV2.pkg

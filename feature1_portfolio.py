@@ -1,6 +1,5 @@
 import json
-from bedrock_client import ask_claude
-
+from bedrock_client import ask_llama as ask_claude
 # Load mock portfolio data
 with open("data/portfolios.json") as f:
     PORTFOLIO_DATA = json.load(f)
