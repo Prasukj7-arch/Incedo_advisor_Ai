@@ -27,3 +27,4 @@ response.json
 .env
 __pycache__/
 AWSCLIV2.pkg
+*.csv
