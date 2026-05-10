@@ -31,3 +31,6 @@ AWSCLIV2.pkg
 
 # Private keys
 *.pem
+
+# Roadmap
+advisor_ai_build_roadmap.html
