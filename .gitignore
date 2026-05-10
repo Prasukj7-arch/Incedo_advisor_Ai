@@ -28,3 +28,6 @@ response.json
 __pycache__/
 AWSCLIV2.pkg
 *.csv
+
+# Private keys
+*.pem
