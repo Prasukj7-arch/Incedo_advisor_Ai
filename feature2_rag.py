@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# EC2 IP loaded from .env — update .env each morning after EC2 restart
-EC2_IP = os.getenv("EC2_RAG_IP", "54.81.100.34")
-RAG_SERVER_URL = f"http://{EC2_IP}:8000"
+# EC2 IP loaded from .env
+EC2_IP = os.getenv("EC2_RAG_IP", "")
+RAG_SERVER_URL = f"http://{EC2_IP}:8000" if EC2_IP else ""
 
 
 def search_research_reports(question: str, session_id: str = "default"):
