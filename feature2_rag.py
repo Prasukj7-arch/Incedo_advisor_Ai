@@ -1,9 +1,15 @@
 import requests
 import json
+import os
+# pyrefly: ignore [missing-import]
+from dotenv import load_dotenv
 
-# Replace with your EC2 Public IP
-EC2_PUBLIC_IP = "54.81.100.34"
-RAG_SERVER_URL = f"http://{EC2_PUBLIC_IP}:8000"
+load_dotenv()
+
+# EC2 IP loaded from .env — update .env each morning after EC2 restart
+EC2_IP = os.getenv("EC2_RAG_IP", "54.81.100.34")
+RAG_SERVER_URL = f"http://{EC2_IP}:8000"
+
 
 def search_research_reports(question: str, session_id: str = "default"):
     """
@@ -19,7 +25,7 @@ def search_research_reports(question: str, session_id: str = "default"):
             json=payload,
             timeout=30
         )
-        
+
         if response.status_code == 200:
             return response.json()
         else:
@@ -33,19 +39,21 @@ def search_research_reports(question: str, session_id: str = "default"):
             "detail": str(e)
         }
 
+
 def get_rag_health():
     """Checks if the RAG server is alive."""
     try:
         response = requests.get(f"{RAG_SERVER_URL}/health", timeout=5)
         return response.json()
-    except:
+    except Exception:
         return {"status": "offline"}
 
+
 if __name__ == "__main__":
-    # Test the connection
+    print(f"RAG Server URL: {RAG_SERVER_URL}")
     print("Checking RAG Server health...")
     print(get_rag_health())
-    
+
     print("\nTesting search query...")
     test_query = "What are the top picks in semiconductor sector?"
     result = search_research_reports(test_query)
