@@ -1,17 +1,12 @@
 import json
 import boto3
-import os
 from datetime import datetime
 
-# ── Bedrock client ────────────────────────────────────────────────────────────
 MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
-
-# DynamoDB table name (we'll create this on AWS next)
 SESSION_TABLE = "advisor-ai-sessions"
 
-# ── Mock portfolio data (embedded so Lambda is self-contained) ────────────────
 PORTFOLIO_DATA = {
   "clients": [
     {
@@ -68,20 +63,76 @@ PORTFOLIO_DATA = {
   ]
 }
 
-SYSTEM_PROMPT = """You are an expert AI financial advisor assistant for a broker-dealer firm.
+CLIENT_DATA = {
+  "clients": [
+    {
+      "id": "C001", "name": "Priya Sharma", "age": 42,
+      "occupation": "Senior Software Engineer at Infosys",
+      "risk_profile": "Moderate", "aum": 850000,
+      "since": "2019-06-01", "last_meeting": "2025-03-12",
+      "next_meeting": "2025-05-15 15:00",
+      "life_events": ["Daughter starting college in 2026", "Planning home purchase in 2027"],
+      "goals": ["Daughter education fund", "Retirement at 58", "Home purchase"],
+      "concerns": ["Market volatility", "Inflation impact on fixed income"],
+      "last_interaction_notes": "Discussed rebalancing equity exposure. Concerned about US tech valuations.",
+      "cross_sell_opportunities": ["Term Life Insurance", "NPS top-up", "SIP increase"],
+      "compliance_flags": []
+    },
+    {
+      "id": "C002", "name": "Rahul Mehta", "age": 35,
+      "occupation": "Co-founder, TechStartup Pvt Ltd",
+      "risk_profile": "Aggressive", "aum": 2100000,
+      "since": "2021-01-15", "last_meeting": "2025-04-02",
+      "next_meeting": "2025-05-09 11:00",
+      "life_events": ["Recent liquidity event from startup funding round", "Getting married in Dec 2025"],
+      "goals": ["Wealth accumulation", "International diversification", "Tax optimization"],
+      "concerns": ["Concentration risk in tech", "Currency exposure"],
+      "last_interaction_notes": "Post Series-B funding, has fresh capital to deploy. Interested in global ETFs.",
+      "cross_sell_opportunities": ["Global ETF Portfolio", "ESOP planning", "Wedding fund SIP"],
+      "compliance_flags": ["Large cash inflow - KYC refresh required"]
+    },
+    {
+      "id": "C003", "name": "Anita Desai", "age": 62,
+      "occupation": "Retired (Former HR Director)",
+      "risk_profile": "Conservative", "aum": 450000,
+      "since": "2015-08-20", "last_meeting": "2025-02-28",
+      "next_meeting": "2025-05-20 10:00",
+      "life_events": ["Recently widowed", "Son settled abroad"],
+      "goals": ["Capital preservation", "Regular income", "Medical emergency fund"],
+      "concerns": ["Outliving savings", "Rising healthcare costs", "Liquidity"],
+      "last_interaction_notes": "Discussed increasing fixed income allocation. Wants monthly income stream.",
+      "cross_sell_opportunities": ["Senior Citizen Savings Scheme", "Health Insurance top-up", "Monthly Income Plan"],
+      "compliance_flags": []
+    }
+  ]
+}
+
+PORTFOLIO_SYSTEM_PROMPT = """You are an expert AI financial advisor assistant for a broker-dealer firm.
 You have real-time client portfolio data. Be concise, professional, and specific with numbers.
 Always mention values, percentages, and changes. Flag risks clearly. Suggest actionable next steps."""
 
-# ── Helper: find client by name ─────────────────────────────────────────────────
-def find_client(name: str):
+CLIENT360_SYSTEM_PROMPT = """You are an expert financial advisor assistant preparing meeting briefs.
+Generate a comprehensive, professional meeting preparation brief.
+Be specific, actionable, and concise. Use the exact data provided.
+Format the brief clearly with sections. Focus on what the advisor needs to know."""
+
+CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type,x-api-key",
+    "Access-Control-Allow-Methods": "POST,OPTIONS",
+    "Content-Type": "application/json"
+}
+
+
+def find_crm_client(name: str):
     name_lower = name.lower()
-    for c in PORTFOLIO_DATA["clients"]:
+    for c in CLIENT_DATA["clients"]:
         if name_lower in c["name"].lower():
             return c
     return None
 
-# ── Helper: build portfolio context string ─────────────────────────────────────
-def build_context(question: str) -> str:
+
+def build_portfolio_context(question: str) -> str:
     for c in PORTFOLIO_DATA["clients"]:
         if c["name"].split()[0].lower() in question.lower() or \
            c["name"].lower() in question.lower():
@@ -93,13 +144,12 @@ def build_context(question: str) -> str:
 CLIENT: {c['name']} | Risk: {c['risk_profile']} | AUM: ${c['aum']:,}
 YTD Return: {c['ytd_return']}% | Last Rebalanced: {c['last_rebalanced']}
 ALLOCATION:
-•⁠  ⁠Equity: {c['portfolio']['equity']['allocation']}% = ${c['portfolio']['equity']['value']:,} (Day: {c['portfolio']['equity']['day_change']}%)
-•⁠  ⁠Fixed Income: {c['portfolio']['fixed_income']['allocation']}% = ${c['portfolio']['fixed_income']['value']:,} (Day: {c['portfolio']['fixed_income']['day_change']}%)
-•⁠  ⁠Cash: {c['portfolio']['cash']['allocation']}% = ${c['portfolio']['cash']['value']:,}
-•⁠  ⁠Alternatives: {c['portfolio']['alternatives']['allocation']}% = ${c['portfolio']['alternatives']['value']:,}
+- Equity: {c['portfolio']['equity']['allocation']}% = ${c['portfolio']['equity']['value']:,} (Day: {c['portfolio']['equity']['day_change']}%)
+- Fixed Income: {c['portfolio']['fixed_income']['allocation']}% = ${c['portfolio']['fixed_income']['value']:,}
+- Cash: {c['portfolio']['cash']['allocation']}% = ${c['portfolio']['cash']['value']:,}
+- Alternatives: {c['portfolio']['alternatives']['allocation']}% = ${c['portfolio']['alternatives']['value']:,}
 TOP HOLDINGS:
 {holdings}"""
-
     total_aum = sum(c["aum"] for c in PORTFOLIO_DATA["clients"])
     lines = [f"TOTAL BOOK AUM: ${total_aum:,}\n"]
     for c in PORTFOLIO_DATA["clients"]:
@@ -109,7 +159,7 @@ TOP HOLDINGS:
         )
     return "\n".join(lines)
 
-# ── Helper: get + save session history in DynamoDB ────────────────────────────
+
 def get_session(session_id: str) -> list:
     try:
         table = dynamodb.Table(SESSION_TABLE)
@@ -130,17 +180,15 @@ def save_session(session_id: str, history: list):
     except Exception:
         pass
 
-# ── Helper: call Bedrock with conversation history ─────────────────────────────
-def call_bedrock(messages: list) -> str:
+
+def call_llama(system_prompt: str, messages: list) -> str:
     conversation = ""
     for msg in messages:
         role = "user" if msg["role"] == "user" else "assistant"
         conversation += f"<|start_header_id|>{role}<|end_header_id|>\n{msg['content']}\n<|eot_id|>"
-
     prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-{SYSTEM_PROMPT}
+{system_prompt}
 <|eot_id|>{conversation}<|start_header_id|>assistant<|end_header_id|>"""
-
     body = json.dumps({
         "prompt": prompt,
         "max_gen_len": 1000,
@@ -151,53 +199,102 @@ def call_bedrock(messages: list) -> str:
     result = json.loads(response["body"].read())
     return result["generation"].strip()
 
-# ── CORS headers for API Gateway ─────────────────────────────────────────────
-CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST,OPTIONS",
-    "Content-Type": "application/json"
-}
 
-# ── MAIN Lambda handler ───────────────────────────────────────────────────────
+def handle_portfolio_chat(body: dict) -> dict:
+    question = body.get("question", "").strip()
+    session_id = body.get("session_id", "default-session")
+    if not question:
+        return {"statusCode": 400, "headers": CORS_HEADERS,
+                "body": json.dumps({"error": "Question is required"})}
+    history = get_session(session_id)
+    context_data = build_portfolio_context(question)
+    user_message = f"PORTFOLIO DATA:\n{context_data}\n\nQUESTION: {question}"
+    history.append({"role": "user", "content": user_message})
+    answer = call_llama(PORTFOLIO_SYSTEM_PROMPT, history)
+    history.append({"role": "assistant", "content": answer})
+    save_session(session_id, history)
+    return {
+        "statusCode": 200, "headers": CORS_HEADERS,
+        "body": json.dumps({
+            "answer": answer,
+            "session_id": session_id,
+            "turn": len(history) // 2
+        })
+    }
+
+
+def handle_client360(body: dict) -> dict:
+    client_name = body.get("client_name", "").strip()
+    if not client_name:
+        return {"statusCode": 400, "headers": CORS_HEADERS,
+                "body": json.dumps({"error": "client_name is required"})}
+    client = find_crm_client(client_name)
+    if not client:
+        return {"statusCode": 404, "headers": CORS_HEADERS,
+                "body": json.dumps({"error": f"Client '{client_name}' not found"})}
+    life_events = "\n".join([f"  - {e}" for e in client["life_events"]])
+    goals = "\n".join([f"  - {g}" for g in client["goals"]])
+    concerns = "\n".join([f"  - {c}" for c in client["concerns"]])
+    opportunities = "\n".join([f"  - {o}" for o in client["cross_sell_opportunities"]])
+    flags = "\n".join([f"  - {f}" for f in client["compliance_flags"]]) \
+        if client["compliance_flags"] else "  - None"
+    user_message = f"""
+CLIENT 360 DATA:
+- Name: {client['name']} | Age: {client['age']} | Occupation: {client['occupation']}
+- Client Since: {client['since']} | Risk Profile: {client['risk_profile']} | AUM: ${client['aum']:,}
+- Last Meeting: {client['last_meeting']} | Next Meeting: {client['next_meeting']}
+- Last Interaction: {client['last_interaction_notes']}
+
+Life Events:
+{life_events}
+
+Financial Goals:
+{goals}
+
+Current Concerns:
+{concerns}
+
+Cross-sell Opportunities:
+{opportunities}
+
+Compliance Flags:
+{flags}
+
+Generate a professional meeting preparation brief for {client['name']} with these sections:
+1. CLIENT SNAPSHOT (3-4 key bullet points)
+2. MEETING AGENDA (3 suggested talking points)
+3. PORTFOLIO ACTIONS (specific suggestions)
+4. CROSS-SELL OPPORTUNITIES (ranked by priority)
+5. COMPLIANCE ALERTS (flags to be aware of)
+6. SUGGESTED OPENING LINE (personalized conversation starter)
+"""
+    messages = [{"role": "user", "content": user_message}]
+    brief = call_llama(CLIENT360_SYSTEM_PROMPT, messages)
+    return {
+        "statusCode": 200, "headers": CORS_HEADERS,
+        "body": json.dumps({
+            "client_name": client["name"],
+            "meeting_time": client["next_meeting"],
+            "aum": client["aum"],
+            "risk_profile": client["risk_profile"],
+            "compliance_flags": client["compliance_flags"],
+            "brief": brief
+        })
+    }
+
+
 def lambda_handler(event, context):
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS_HEADERS, "body": ""}
-
     try:
         body = json.loads(event.get("body", "{}"))
-        question = body.get("question", "").strip()
-        session_id = body.get("session_id", "default-session")
-
-        if not question:
-            return {
-                "statusCode": 400,
-                "headers": CORS_HEADERS,
-                "body": json.dumps({"error": "Question is required"})
-            }
-
-        history = get_session(session_id)
-        context_data = build_context(question)
-        user_message = f"PORTFOLIO DATA:\n{context_data}\n\nQUESTION: {question}"
-
-        history.append({"role": "user", "content": user_message})
-        answer = call_bedrock(history)
-        history.append({"role": "assistant", "content": answer})
-        save_session(session_id, history)
-
-        return {
-            "statusCode": 200,
-            "headers": CORS_HEADERS,
-            "body": json.dumps({
-                "answer": answer,
-                "session_id": session_id,
-                "turn": len(history) // 2
-            })
-        }
-
+        path = event.get("path", "/chat")
+        if path == "/client360":
+            return handle_client360(body)
+        else:
+            return handle_portfolio_chat(body)
     except Exception as e:
         return {
-            "statusCode": 500,
-            "headers": CORS_HEADERS,
+            "statusCode": 500, "headers": CORS_HEADERS,
             "body": json.dumps({"error": str(e)})
         }
