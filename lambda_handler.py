@@ -1,6 +1,7 @@
 import json
 import boto3
 from datetime import datetime
+from feature4_compliance import check_compliance, log_audit_trail
 
 MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
@@ -211,6 +212,24 @@ def handle_portfolio_chat(body: dict) -> dict:
     user_message = f"PORTFOLIO DATA:\n{context_data}\n\nQUESTION: {question}"
     history.append({"role": "user", "content": user_message})
     answer = call_llama(PORTFOLIO_SYSTEM_PROMPT, history)
+    
+    # --- COMPLIANCE RULE ENGINE ---
+    client_profile = None
+    for c in PORTFOLIO_DATA["clients"]:
+        if c["name"].split()[0].lower() in question.lower() or c["name"].lower() in question.lower():
+            client_profile = c
+            break
+            
+    violations = []
+    if client_profile:
+        violations = check_compliance(client_profile, answer)
+        log_audit_trail(client_profile["id"], "portfolio_chat", answer, violations)
+    else:
+        log_audit_trail("UNKNOWN_CLIENT", "portfolio_chat", answer, [])
+        
+    if violations:
+        answer += "\n\n⚠️ COMPLIANCE WARNING: This recommendation has been flagged: " + ", ".join(violations)
+
     history.append({"role": "assistant", "content": answer})
     save_session(session_id, history)
     return {
@@ -268,8 +287,15 @@ Generate a professional meeting preparation brief for {client['name']} with thes
 5. COMPLIANCE ALERTS (flags to be aware of)
 6. SUGGESTED OPENING LINE (personalized conversation starter)
 """
-    messages = [{"role": "user", "content": user_message}]
-    brief = call_llama(CLIENT360_SYSTEM_PROMPT, messages)
+    answer = call_llama(CLIENT360_SYSTEM_PROMPT, [{"role": "user", "content": user_message}])
+    
+    # --- COMPLIANCE RULE ENGINE ---
+    violations = check_compliance(client, answer)
+    log_audit_trail(client["id"], "client360_brief", answer, violations)
+    
+    if violations:
+        answer += "\n\n⚠️ COMPLIANCE WARNING: The generated talking points contain flagged terms: " + ", ".join(violations)
+
     return {
         "statusCode": 200, "headers": CORS_HEADERS,
         "body": json.dumps({
@@ -278,7 +304,7 @@ Generate a professional meeting preparation brief for {client['name']} with thes
             "aum": client["aum"],
             "risk_profile": client["risk_profile"],
             "compliance_flags": client["compliance_flags"],
-            "brief": brief
+            "brief": answer
         })
     }
 
