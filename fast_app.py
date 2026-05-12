@@ -2,10 +2,15 @@ import os
 import secrets
 import requests
 from typing import Optional
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI, HTTPException, Depends, status
+# pyrefly: ignore [missing-import]
 from fastapi.staticfiles import StaticFiles
+# pyrefly: ignore [missing-import]
 from fastapi.responses import FileResponse, HTMLResponse
+# pyrefly: ignore [missing-import]
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel
 from feature4_compliance import run_compliance_check
 
@@ -127,18 +132,22 @@ def api_compliance(req: ComplianceRequest, username: str = Depends(verify_creden
 def api_status(username: str = Depends(verify_credentials)):
     status_apigw = "offline"
     status_ec2 = "offline"
-    
+
     try:
-        res = requests.options(f"{API_BASE}/chat", headers=HEADERS, timeout=2)
-        if res.status_code == 200: 
+        res = requests.post(
+            f"{API_BASE}/chat",
+            headers=HEADERS,
+            json={"question": "ping", "session_id": "status-check"},
+            timeout=5
+        )
+        if res.status_code == 200:
             status_apigw = "active"
     except Exception:
         pass
-        
+
     try:
-        # Note: using localhost since this app runs on the EC2 instance now
-        res = requests.get("http://localhost:8000/docs", timeout=2)
-        if res.status_code in [200, 404, 405]:
+        res = requests.get("http://localhost:8000/health", timeout=2)
+        if res.status_code == 200:
             status_ec2 = "active"
     except Exception:
         pass
@@ -150,5 +159,6 @@ def api_status(username: str = Depends(verify_credentials)):
     }
 
 if __name__ == "__main__":
+    # pyrefly: ignore [missing-import]
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
