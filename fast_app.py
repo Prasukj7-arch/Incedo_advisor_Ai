@@ -136,20 +136,17 @@ def api_status(username: str = Depends(verify_credentials)):
     status_apigw = "offline"
     status_ec2 = "offline"
 
+    # 1. Check API Gateway / Lambda Health (Lightweight)
     try:
-        res = requests.post(
-            f"{API_BASE}/chat",
-            headers=HEADERS,
-            json={"question": "ping", "session_id": "status-check"},
-            timeout=5
-        )
+        res = requests.get(f"{API_BASE}/health", headers=HEADERS, timeout=2)
         if res.status_code == 200:
             status_apigw = "active"
     except Exception:
         pass
 
+    # 2. Check EC2 RAG Server Health (using /docs as it always exists in FastAPI)
     try:
-        res = requests.get("http://localhost:8000/health", timeout=2)
+        res = requests.get("http://localhost:8000/docs", timeout=2)
         if res.status_code == 200:
             status_ec2 = "active"
     except Exception:
