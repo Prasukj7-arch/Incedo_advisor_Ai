@@ -364,8 +364,11 @@ def lambda_handler(event, context):
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS_HEADERS, "body": ""}
     try:
-        body = json.loads(event.get("body", "{}"))
         path = event.get("path", "/chat")
+        if path == "/health":
+            return {"statusCode": 200, "headers": CORS_HEADERS, "body": json.dumps({"status": "active"})}
+            
+        body = json.loads(event.get("body", "{}"))
         if path == "/client360":
             return handle_client360(body)
         else:
