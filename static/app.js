@@ -16,7 +16,8 @@ const sectionData = {
     'feature-chat': { title: 'Portfolio Chat', subtitle: 'Ask anything about your client portfolios in natural language.' },
     'feature-rag': { title: 'Research Search', subtitle: 'Search across 5 financial research reports using natural language.' },
     'feature-client360': { title: 'Client 360 — Meeting Prep', subtitle: 'Generate a complete meeting preparation brief for any client instantly.' },
-    'feature-compliance': { title: 'Compliance Monitor', subtitle: 'Real-time compliance checks across all client portfolios with CloudWatch audit logging.' }
+    'feature-compliance': { title: 'Compliance Monitor', subtitle: 'Real-time compliance checks across all client portfolios with CloudWatch audit logging.' },
+    'feature-observability': { title: 'AI Observability Console', subtitle: 'Real-time AWS Bedrock token usage, latency, and cost tracking.' }
 };
 
 navItems.forEach(item => {
@@ -398,3 +399,90 @@ async function checkSystemStatus() {
 // Check status on load and every 30 seconds
 checkSystemStatus();
 setInterval(checkSystemStatus, 30000);
+
+// -----------------------------------------------------------
+// FEATURE 5: AI Observability
+// -----------------------------------------------------------
+async function loadObservability() {
+    const loader = document.getElementById('obs-loader');
+    const results = document.getElementById('obs-results');
+
+    results.classList.add('hidden');
+    loader.classList.remove('hidden');
+
+    try {
+        const response = await fetch('/api/observability');
+        const data = await response.json();
+        loader.classList.add('hidden');
+
+        if (response.ok) {
+            results.classList.remove('hidden');
+            results.classList.add('flex');
+
+            // Summary
+            const s = data.summary;
+            document.getElementById('obs-calls').textContent = s.total_calls;
+            document.getElementById('obs-tokens').textContent = s.total_tokens.toLocaleString();
+            document.getElementById('obs-cost').textContent = '$' + s.total_cost_usd.toFixed(6);
+            document.getElementById('obs-cost-inr').textContent = '₹' + s.total_cost_inr.toFixed(4);
+            document.getElementById('obs-latency').textContent = s.avg_latency_ms + 'ms';
+            document.getElementById('obs-model').textContent = s.model_id;
+
+            // By feature
+            const featDiv = document.getElementById('obs-features');
+            featDiv.innerHTML = '';
+            const colors = {
+                'portfolio_chat': 'blue',
+                'client360_brief': 'purple',
+                'compliance_check': 'red'
+            };
+            Object.entries(data.by_feature).forEach(([feat, stats]) => {
+                const color = colors[feat] || 'gray';
+                featDiv.innerHTML += `
+                    <div class="flex items-center gap-4 p-3 rounded-lg bg-gray-800/40">
+                        <div class="w-3 h-3 rounded-full bg-${color}-400 flex-shrink-0"></div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-medium text-gray-200">${feat.replace('_', ' ').toUpperCase()}</span>
+                                <span class="text-xs text-gray-400">${stats.calls} calls</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-1.5">
+                                <div class="bg-${color}-400 h-1.5 rounded-full" style="width: ${Math.min((stats.calls / data.summary.total_calls) * 100, 100)}%"></div>
+                            </div>
+                        </div>
+                        <div class="text-right text-xs text-gray-400">
+                            <div>${stats.tokens.toLocaleString()} tokens</div>
+                            <div class="text-green-400">$${stats.cost.toFixed(6)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Recent calls
+            const tbody = document.getElementById('obs-recent');
+            tbody.innerHTML = '';
+            data.recent_calls.forEach(call => {
+                const feat = call.feature || 'unknown';
+                const badge = feat === 'portfolio_chat' ? 'bg-blue-500/20 text-blue-300' :
+                              feat === 'client360_brief' ? 'bg-purple-500/20 text-purple-300' :
+                              'bg-gray-500/20 text-gray-300';
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-800 hover:bg-gray-800/30">
+                        <td class="py-2 pr-4">
+                            <span class="px-2 py-0.5 rounded text-xs font-medium ${badge}">
+                                ${feat.replace('_', ' ')}
+                            </span>
+                        </td>
+                        <td class="py-2 pr-4 text-gray-300">${(call.tokens || 0).toLocaleString()}</td>
+                        <td class="py-2 pr-4 text-amber-400">${call.latency_ms || 0}ms</td>
+                        <td class="py-2 pr-4 text-green-400">$${parseFloat(call.cost_usd || 0).toFixed(6)}</td>
+                        <td class="py-2 text-gray-500 text-xs">${(call.timestamp || '').replace('T', ' ').substring(0, 19)}</td>
+                    </tr>
+                `;
+            });
+        }
+    } catch (err) {
+        loader.classList.add('hidden');
+        alert('Error: ' + err.message);
+    }
+}
