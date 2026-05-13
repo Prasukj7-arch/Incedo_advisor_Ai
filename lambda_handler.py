@@ -1,6 +1,7 @@
 import json
 import boto3
 from datetime import datetime
+from decimal import Decimal
 from feature4_compliance import check_compliance, log_audit_trail
 
 MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"
@@ -227,7 +228,7 @@ def call_llama(system_prompt: str, messages: list) -> tuple:
         "output_tokens": output_tokens,
         "total_tokens": input_tokens + output_tokens,
         "latency_ms": latency_ms,
-        "cost_usd": round(cost_usd, 6),
+        "cost_usd": Decimal(str(round(cost_usd, 6))),
         "model_id": MODEL_ID,
         "timestamp": datetime.utcnow().isoformat()
     }
