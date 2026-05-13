@@ -136,9 +136,14 @@ def api_status(username: str = Depends(verify_credentials)):
     status_apigw = "offline"
     status_ec2 = "offline"
 
-    # 1. Check API Gateway / Lambda Health (Lightweight)
+    # 1. Check API Gateway / Lambda Health via /chat
     try:
-        res = requests.get(f"{API_BASE}/health", headers=HEADERS, timeout=2)
+        res = requests.post(
+            f"{API_BASE}/chat",
+            headers=HEADERS,
+            json={"question": "health_check"},
+            timeout=2
+        )
         if res.status_code == 200:
             status_apigw = "active"
     except Exception:

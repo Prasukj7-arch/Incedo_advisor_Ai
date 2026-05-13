@@ -250,6 +250,9 @@ def save_metrics(feature: str, metrics: dict):
 
 def handle_portfolio_chat(body: dict) -> dict:
     question = body.get("question", "").strip()
+    if question == "health_check":
+        return {"statusCode": 200, "headers": CORS_HEADERS, "body": json.dumps({"status": "active"})}
+        
     session_id = body.get("session_id", "default-session")
     if not question:
         return {"statusCode": 400, "headers": CORS_HEADERS,
