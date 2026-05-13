@@ -1,7 +1,10 @@
 import os
 import secrets
 import requests
+import boto3
 from typing import Optional
+
+dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
 # pyrefly: ignore [missing-import]
 from fastapi import FastAPI, HTTPException, Depends, status
 # pyrefly: ignore [missing-import]
@@ -157,6 +160,56 @@ def api_status(username: str = Depends(verify_credentials)):
         "ec2_rag": status_ec2,
         "bedrock": status_apigw
     }
+
+@app.get("/api/observability")
+def api_observability(username: str = Depends(verify_credentials)):
+    try:
+        table = dynamodb.Table("advisor-ai-metrics")
+        # Scan last 50 records
+        response = table.scan(Limit=50)
+        items = response.get("Items", [])
+        
+        # Calculate aggregates
+        total_calls = len(items)
+        total_tokens = sum(int(i.get("total_tokens", 0)) for i in items)
+        total_cost = sum(float(i.get("cost_usd", 0)) for i in items)
+        avg_latency = sum(int(i.get("latency_ms", 0)) for i in items) / max(total_calls, 1)
+        
+        # Per feature breakdown
+        features = {}
+        for item in items:
+            f = item.get("feature", "unknown")
+            if f not in features:
+                features[f] = {"calls": 0, "tokens": 0, "cost": 0}
+            features[f]["calls"] += 1
+            features[f]["tokens"] += int(item.get("total_tokens", 0))
+            features[f]["cost"] += float(item.get("cost_usd", 0))
+        
+        # Recent 10 calls for timeline
+        recent = sorted(items, key=lambda x: x.get("timestamp", ""), reverse=True)[:10]
+        
+        return {
+            "summary": {
+                "total_calls": total_calls,
+                "total_tokens": total_tokens,
+                "total_cost_usd": round(total_cost, 6),
+                "total_cost_inr": round(total_cost * 83.5, 4),
+                "avg_latency_ms": round(avg_latency),
+                "model_id": "us.meta.llama3-1-8b-instruct-v1:0"
+            },
+            "by_feature": features,
+            "recent_calls": [
+                {
+                    "feature": i.get("feature"),
+                    "tokens": i.get("total_tokens"),
+                    "latency_ms": i.get("latency_ms"),
+                    "cost_usd": i.get("cost_usd"),
+                    "timestamp": i.get("timestamp")
+                } for i in recent
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     # pyrefly: ignore [missing-import]
