@@ -1,6 +1,7 @@
 import json
 import boto3
 from datetime import datetime
+from decimal import Decimal
 from feature4_compliance import check_compliance, log_audit_trail
 
 MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"
@@ -227,7 +228,7 @@ def call_llama(system_prompt: str, messages: list) -> tuple:
         "output_tokens": output_tokens,
         "total_tokens": input_tokens + output_tokens,
         "latency_ms": latency_ms,
-        "cost_usd": round(cost_usd, 6),
+        "cost_usd": Decimal(str(round(cost_usd, 6))),
         "model_id": MODEL_ID,
         "timestamp": datetime.utcnow().isoformat()
     }
@@ -250,6 +251,9 @@ def save_metrics(feature: str, metrics: dict):
 
 def handle_portfolio_chat(body: dict) -> dict:
     question = body.get("question", "").strip()
+    if question == "health_check":
+        return {"statusCode": 200, "headers": CORS_HEADERS, "body": json.dumps({"status": "active"})}
+        
     session_id = body.get("session_id", "default-session")
     if not question:
         return {"statusCode": 400, "headers": CORS_HEADERS,
@@ -287,7 +291,7 @@ def handle_portfolio_chat(body: dict) -> dict:
             "session_id": session_id,
             "turn": len(history) // 2,
             "metrics": metrics
-        })
+        }, default=float)
     }
 
 
@@ -355,7 +359,7 @@ Generate a professional meeting preparation brief for {client['name']} with thes
             "risk_profile": client["risk_profile"],
             "compliance_flags": client["compliance_flags"],
             "brief": answer,
-            "metrics": metrics
+            "metrics": {k: float(v) if isinstance(v, Decimal) else v for k, v in metrics.items()}
         })
     }
 
