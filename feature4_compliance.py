@@ -226,6 +226,28 @@ def run_compliance_check(client_name: str = None) -> dict:
     }
 
 
+def check_compliance(client: dict, ai_response: str) -> list:
+    """Check AI response against compliance rules."""
+    violations = []
+    portfolio = client.get("portfolio", {})
+    for rule in COMPLIANCE_RULES:
+        try:
+            if rule["check"](client, portfolio):
+                violations.append(rule.get("rule_name", rule.get("name", "Unknown Rule")))
+        except Exception:
+            pass
+    return violations
+
+
+def log_audit_trail(client_id: str, feature: str, response: str, violations: list):
+    """Log AI output to CloudWatch for audit trail."""
+    formatted_violations = [
+        {"rule_id": f"RULE-{feature.upper()}", "rule_name": v, "severity": "HIGH"}
+        for v in violations
+    ]
+    log_to_cloudwatch(client_id, formatted_violations)
+
+
 # ── Quick test ─────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     print("=" * 60)

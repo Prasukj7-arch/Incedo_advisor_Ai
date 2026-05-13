@@ -43,6 +43,10 @@
                     <i class="fa-solid fa-shield-halved w-5 text-center"></i>
                     <span>Compliance Monitor</span>
                 </button>
+                <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-observability">
+                    <i class="fa-solid fa-chart-line w-5 text-center"></i>
+                    <span>AI Observability</span>
+                </button>
             </nav>
         </div>
         
@@ -355,6 +359,80 @@
 
                 </div>
 
+            </section>
+            
+            <!-- FEATURE 5: AI Observability -->
+            <section id="feature-observability" class="feature-section max-w-5xl mx-auto h-full flex flex-col hidden">
+                <div class="glass p-6 rounded-2xl border border-gray-700/50 mb-6 flex gap-4 items-center shadow-lg">
+                    <button class="btn-primary flex-1 py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg text-lg" onclick="loadObservability()">
+                        <i class="fa-solid fa-satellite-dish"></i> Load Live Metrics from AWS
+                    </button>
+                </div>
+
+                <div id="obs-loader" class="glass flex-1 rounded-2xl p-12 flex flex-col items-center justify-center hidden">
+                    <div class="loader mb-4 w-10 h-10"></div>
+                    <p class="text-blue-400 font-medium">Fetching metrics from AWS DynamoDB...</p>
+                </div>
+
+                <div id="obs-results" class="hidden flex-col gap-6">
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div class="glass p-5 rounded-2xl border border-blue-500/30 bg-blue-900/10">
+                            <p class="text-xs text-blue-300 uppercase tracking-wider mb-1">Total API Calls</p>
+                            <h3 class="text-3xl font-bold text-white" id="obs-calls">0</h3>
+                            <p class="text-xs text-gray-500 mt-1">Since deployment</p>
+                        </div>
+                        <div class="glass p-5 rounded-2xl border border-purple-500/30 bg-purple-900/10">
+                            <p class="text-xs text-purple-300 uppercase tracking-wider mb-1">Total Tokens Used</p>
+                            <h3 class="text-3xl font-bold text-white" id="obs-tokens">0</h3>
+                            <p class="text-xs text-gray-500 mt-1">Input + Output combined</p>
+                        </div>
+                        <div class="glass p-5 rounded-2xl border border-green-500/30 bg-green-900/10">
+                            <p class="text-xs text-green-300 uppercase tracking-wider mb-1">Total Cost (USD)</p>
+                            <h3 class="text-3xl font-bold text-green-400" id="obs-cost">$0</h3>
+                            <p class="text-xs text-gray-500 mt-1" id="obs-cost-inr">₹0</p>
+                        </div>
+                        <div class="glass p-5 rounded-2xl border border-amber-500/30 bg-amber-900/10">
+                            <p class="text-xs text-amber-300 uppercase tracking-wider mb-1">Avg Latency</p>
+                            <h3 class="text-3xl font-bold text-amber-400" id="obs-latency">0ms</h3>
+                            <p class="text-xs text-gray-500 mt-1">Per Bedrock call</p>
+                        </div>
+                        <div class="glass p-5 rounded-2xl border border-gray-700/50 col-span-2">
+                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Model</p>
+                            <h3 class="text-sm font-bold text-white" id="obs-model">--</h3>
+                            <p class="text-xs text-gray-500 mt-1">Amazon Bedrock — Llama 3.1 8B Instruct</p>
+                        </div>
+                    </div>
+
+                    <!-- Per Feature Breakdown -->
+                    <div class="glass rounded-2xl border border-gray-700/50 p-6">
+                        <h3 class="font-bold outfit text-lg mb-4 text-blue-400 flex items-center">
+                            <i class="fa-solid fa-chart-pie mr-2 text-blue-500"></i>Usage by Feature
+                        </h3>
+                        <div id="obs-features" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Recent Calls Timeline -->
+                    <div class="glass rounded-2xl border border-gray-700/50 p-6">
+                        <h3 class="font-bold outfit text-lg mb-4 text-purple-400 flex items-center">
+                            <i class="fa-solid fa-timeline mr-2 text-purple-500"></i>Recent Invocations
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-gray-500 text-xs uppercase border-b border-gray-700">
+                                        <th class="text-left pb-2">Feature</th>
+                                        <th class="text-left pb-2">Tokens</th>
+                                        <th class="text-left pb-2">Latency</th>
+                                        <th class="text-left pb-2">Cost</th>
+                                        <th class="text-left pb-2">Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="obs-recent"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </section>
             
         </div>

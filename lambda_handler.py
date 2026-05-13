@@ -182,23 +182,70 @@ def save_session(session_id: str, history: list):
         pass
 
 
-def call_llama(system_prompt: str, messages: list) -> str:
+def call_llama(system_prompt: str, messages: list) -> tuple:
+    """Returns (answer, metrics_dict)"""
     conversation = ""
     for msg in messages:
         role = "user" if msg["role"] == "user" else "assistant"
         conversation += f"<|start_header_id|>{role}<|end_header_id|>\n{msg['content']}\n<|eot_id|>"
+
     prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 {system_prompt}
 <|eot_id|>{conversation}<|start_header_id|>assistant<|end_header_id|>"""
+
     body = json.dumps({
         "prompt": prompt,
         "max_gen_len": 1000,
         "temperature": 0.7,
         "top_p": 0.9
     })
-    response = bedrock.invoke_model(modelId=MODEL_ID, body=body)
+
+    import time
+    start_time = time.time()
+    response = bedrock.invoke_model(
+        modelId=MODEL_ID,
+        body=body,
+        trace="ENABLED"
+    )
+    latency_ms = int((time.time() - start_time) * 1000)
+
     result = json.loads(response["body"].read())
-    return result["generation"].strip()
+    answer = result["generation"].strip()
+
+    # Extract Bedrock metrics from response metadata
+    metadata = response.get("ResponseMetadata", {})
+    http_headers = metadata.get("HTTPHeaders", {})
+
+    input_tokens = int(http_headers.get("x-amzn-bedrock-input-token-count", 0))
+    output_tokens = int(http_headers.get("x-amzn-bedrock-output-token-count", 0))
+
+    # Llama 3.1 8B pricing: $0.22/1M input, $0.22/1M output
+    cost_usd = ((input_tokens + output_tokens) / 1_000_000) * 0.22
+
+    metrics = {
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": input_tokens + output_tokens,
+        "latency_ms": latency_ms,
+        "cost_usd": round(cost_usd, 6),
+        "model_id": MODEL_ID,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+    return answer, metrics
+
+
+def save_metrics(feature: str, metrics: dict):
+    """Save invocation metrics to DynamoDB for observability."""
+    try:
+        table = dynamodb.Table("advisor-ai-metrics")
+        table.put_item(Item={
+            "metric_id": f"{feature}-{datetime.utcnow().isoformat()}",
+            "feature": feature,
+            **metrics
+        })
+    except Exception:
+        pass
 
 
 def handle_portfolio_chat(body: dict) -> dict:
@@ -211,7 +258,8 @@ def handle_portfolio_chat(body: dict) -> dict:
     context_data = build_portfolio_context(question)
     user_message = f"PORTFOLIO DATA:\n{context_data}\n\nQUESTION: {question}"
     history.append({"role": "user", "content": user_message})
-    answer = call_llama(PORTFOLIO_SYSTEM_PROMPT, history)
+    answer, metrics = call_llama(PORTFOLIO_SYSTEM_PROMPT, history)
+    save_metrics("portfolio_chat", metrics)
     
     # --- COMPLIANCE RULE ENGINE ---
     client_profile = None
@@ -237,7 +285,8 @@ def handle_portfolio_chat(body: dict) -> dict:
         "body": json.dumps({
             "answer": answer,
             "session_id": session_id,
-            "turn": len(history) // 2
+            "turn": len(history) // 2,
+            "metrics": metrics
         })
     }
 
@@ -287,7 +336,8 @@ Generate a professional meeting preparation brief for {client['name']} with thes
 5. COMPLIANCE ALERTS (flags to be aware of)
 6. SUGGESTED OPENING LINE (personalized conversation starter)
 """
-    answer = call_llama(CLIENT360_SYSTEM_PROMPT, [{"role": "user", "content": user_message}])
+    answer, metrics = call_llama(CLIENT360_SYSTEM_PROMPT, [{"role": "user", "content": user_message}])
+    save_metrics("client360_brief", metrics)
     
     # --- COMPLIANCE RULE ENGINE ---
     violations = check_compliance(client, answer)
@@ -304,7 +354,8 @@ Generate a professional meeting preparation brief for {client['name']} with thes
             "aum": client["aum"],
             "risk_profile": client["risk_profile"],
             "compliance_flags": client["compliance_flags"],
-            "brief": answer
+            "brief": answer,
+            "metrics": metrics
         })
     }
 
