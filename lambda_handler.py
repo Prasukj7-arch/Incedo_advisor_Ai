@@ -291,7 +291,7 @@ def handle_portfolio_chat(body: dict) -> dict:
             "session_id": session_id,
             "turn": len(history) // 2,
             "metrics": metrics
-        })
+        }, default=float)
     }
 
 
@@ -359,7 +359,7 @@ Generate a professional meeting preparation brief for {client['name']} with thes
             "risk_profile": client["risk_profile"],
             "compliance_flags": client["compliance_flags"],
             "brief": answer,
-            "metrics": metrics
+            "metrics": {k: float(v) if isinstance(v, Decimal) else v for k, v in metrics.items()}
         })
     }
 
