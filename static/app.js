@@ -52,6 +52,77 @@ const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 const chatHistory = document.getElementById('chat-history');
 const chatSubmit = document.getElementById('chat-submit');
+const micBtn = document.getElementById('mic-btn');
+const voiceToggle = document.getElementById('voice-toggle');
+
+// Voice Recognition Setup
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isListening = false;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+        isListening = true;
+        micBtn.classList.add('text-red-500', 'listening-pulse');
+        chatInput.placeholder = "Listening...";
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        chatInput.value = transcript;
+        chatForm.dispatchEvent(new Event('submit'));
+    };
+
+    recognition.onend = () => {
+        isListening = false;
+        micBtn.classList.remove('text-red-500', 'listening-pulse');
+        chatInput.placeholder = "Ask about portfolios... e.g. 'What are Rahul's top risks?'";
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error", event.error);
+        recognition.stop();
+    };
+}
+
+micBtn.addEventListener('click', () => {
+    if (!recognition) {
+        alert("Speech recognition not supported in this browser.");
+        return;
+    }
+    if (isListening) {
+        recognition.stop();
+    } else {
+        recognition.start();
+    }
+});
+
+// Text-to-Speech Helper
+function speakResponse(text) {
+    if (!voiceToggle.checked || !window.speechSynthesis) return;
+    
+    // Stop any current speaking
+    window.speechSynthesis.cancel();
+    
+    // Clean text for better speaking (remove markdown)
+    const cleanText = text.replace(/[#*`_]/g, '').replace(/\[.*?\]/g, '').trim();
+    
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    
+    // Find a professional-sounding voice if possible
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
+    if (preferredVoice) utterance.voice = preferredVoice;
+
+    window.speechSynthesis.speak(utterance);
+}
 
 function fillChat(query) {
     chatInput.value = query;
@@ -120,6 +191,8 @@ chatForm.addEventListener('submit', async (e) => {
                     </div>
                 </div>
             `;
+            // Trigger Voice Response if enabled
+            speakResponse(data.answer);
         } else {
             chatHistory.innerHTML += `<div class="text-red-400 text-sm mt-2 text-center">Error: ${data.detail || 'Connection failed'}</div>`;
         }
