@@ -70,6 +70,11 @@ class ClientRequest(BaseModel):
 class ComplianceRequest(BaseModel):
     client_filter: Optional[str] = None
 
+class SupervisionActionRequest(BaseModel):
+    review_id: str
+    action: str  # 'APPROVE' or 'OVERRIDE'
+    notes: str
+
 # ── API endpoints (all protected) ─────────────────────────────────────────────
 @app.post("/api/chat")
 def api_chat(req: ChatRequest, username: str = Depends(verify_credentials)):
@@ -210,6 +215,43 @@ def api_observability(username: str = Depends(verify_credentials)):
                 } for i in recent
             ]
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/supervision/pending")
+def get_pending_supervision(username: str = Depends(verify_credentials)):
+    try:
+        table = dynamodb.Table("advisor-ai-supervision")
+        # Use a scan for simplicity in this demo, filtered by status
+        response = table.scan(
+            FilterExpression=boto3.dynamodb.conditions.Attr("status").eq("PENDING")
+        )
+        return response.get("Items", [])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/supervision/action")
+def take_supervision_action(req: SupervisionActionRequest, username: str = Depends(verify_credentials)):
+    try:
+        table = dynamodb.Table("advisor-ai-supervision")
+        from datetime import datetime
+        
+        table.update_item(
+            Key={"review_id": req.review_id},
+            UpdateExpression="SET #s = :status, decision = :dec, supervisor_notes = :notes, reviewed_at = :time",
+            ExpressionAttributeNames={"#s": "status"},
+            ExpressionAttributeValues={
+                ":status": "REVIEWED",
+                ":dec": req.action,
+                ":notes": req.notes,
+                ":time": datetime.utcnow().isoformat()
+            }
+        )
+        
+        # Log to CloudWatch (Simulated via print for EC2 logs, but usually a CloudWatch call)
+        print(f"COMPLIANCE AUDIT: Supervisor {username} performed {req.action} on {req.review_id}. Notes: {req.notes}")
+        
+        return {"status": "success", "review_id": req.review_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

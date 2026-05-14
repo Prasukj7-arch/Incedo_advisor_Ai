@@ -36,27 +36,53 @@
                 <p class="text-sm text-gray-400 mt-1">Intelligent Financial Concierge</p>
             </div>
             
-            <nav class="p-4 space-y-2" id="nav-menu">
-                <button class="nav-item active w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-chat">
-                    <i class="fa-solid fa-chart-pie w-5 text-center"></i>
-                    <span>Portfolio Chat</span>
-                </button>
-                <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-rag">
-                    <i class="fa-solid fa-magnifying-glass w-5 text-center"></i>
-                    <span>Research Search</span>
-                </button>
-                <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-client360">
-                    <i class="fa-solid fa-user-tie w-5 text-center"></i>
-                    <span>Client 360</span>
-                </button>
-                <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-compliance">
-                    <i class="fa-solid fa-shield-halved w-5 text-center"></i>
-                    <span>Compliance Monitor</span>
-                </button>
-                <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-observability">
-                    <i class="fa-solid fa-chart-line w-5 text-center"></i>
-                    <span>AI Observability</span>
-                </button>
+            <nav class="p-4 space-y-4" id="nav-menu">
+                <!-- ADVISOR TOOLS SECTION -->
+                <div>
+                    <h3 class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Advisor Tools</h3>
+                    <div class="space-y-1">
+                        <button class="nav-item active w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-chat">
+                            <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                            <span>Portfolio Chat</span>
+                        </button>
+                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-rag">
+                            <i class="fa-solid fa-magnifying-glass w-5 text-center"></i>
+                            <span>Research Search</span>
+                        </button>
+                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-client360">
+                            <i class="fa-solid fa-user-tie w-5 text-center"></i>
+                            <span>Client 360</span>
+                        </button>
+                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-compliance">
+                            <i class="fa-solid fa-shield-halved w-5 text-center"></i>
+                            <span>Compliance Monitor</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MANAGEMENT & RISK SECTION -->
+                <div>
+                    <h3 class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Management & Risk</h3>
+                    <div class="space-y-1">
+                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-400 hover:text-white group" data-target="feature-observability">
+                            <i class="fa-solid fa-chart-line w-5 text-center"></i>
+                            <div class="flex flex-col">
+                                <span>AI Observability</span>
+                                <span class="text-[9px] text-blue-500 font-bold uppercase tracking-tighter">Internal Use</span>
+                            </div>
+                        </button>
+                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-400 hover:text-white group" data-target="feature-supervision">
+                            <i class="fa-solid fa-user-check w-5 text-center"></i>
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-2">
+                                    <span>Supervision Queue</span>
+                                    <span id="supervision-badge" class="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                                </div>
+                                <span class="text-[9px] text-amber-500 font-bold uppercase tracking-tighter">Compliance View</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </nav>
         </div>
         
@@ -450,6 +476,34 @@
                             </table>
                         </div>
                     </div>
+                </div>
+            </section>
+            
+            <!-- FEATURE 6: Supervision Queue -->
+            <section id="feature-supervision" class="feature-section max-w-5xl mx-auto h-full flex flex-col hidden">
+                <div class="glass p-6 rounded-2xl border border-gray-700/50 mb-6 flex gap-4 items-center shadow-lg">
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white">Pending Human Review</h3>
+                        <p class="text-sm text-gray-400">Critical AI recommendations requiring supervisor approval.</p>
+                    </div>
+                    <button class="btn-primary px-6 py-3 rounded-xl font-bold text-white flex items-center gap-2 shadow-lg" onclick="loadSupervisionQueue()">
+                        <i class="fa-solid fa-rotate"></i> Refresh Queue
+                    </button>
+                </div>
+
+                <div id="sup-loader" class="glass flex-1 rounded-2xl p-12 flex flex-col items-center justify-center hidden">
+                    <div class="loader mb-4 w-10 h-10 border-t-amber-500"></div>
+                    <p class="text-amber-400 font-medium">Checking supervision queue...</p>
+                </div>
+
+                <div id="sup-empty" class="glass flex-1 rounded-2xl p-12 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-circle-check text-5xl text-gray-700 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-400">Queue is Clear</h3>
+                    <p class="text-sm text-gray-500">All high-risk AI advice has been reviewed.</p>
+                </div>
+
+                <div id="sup-list" class="hidden flex-col gap-6 overflow-y-auto pb-8">
+                    <!-- Review cards injected here -->
                 </div>
             </section>
             
