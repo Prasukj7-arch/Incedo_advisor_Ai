@@ -27,9 +27,8 @@ Advisor AI is an **AI-powered financial advisor concierge** built entirely on AW
 
 This project was built as part of the **Incedo University AI-First initiative** and the AWS AI Practitioner certification program.
 
-**Built in:** 12 days  
 **Total AWS cost:** ~$0.05 (₹4) for the entire project  
-**Live URL:** `https://your-static-domain.ngrok-free.app` (wraps `http://EC2_IP:8080` with secure HTTPS)
+**Live URL:** `https://strained-aletha-easeled.ngrok-free.dev` (wraps `http://EC2_IP:8080` with secure HTTPS)
 
 ---
 
@@ -119,17 +118,55 @@ Every violation is logged to **AWS CloudWatch** for a complete audit trail — m
 
 ---
 
+### Feature 5 — AI Observability (Telemetry & Cost Controls)
+**Internal Use Only**
+
+Real-time monitoring of LLM usage across the entire platform:
+- **Token Tracking:** Monitoring input/output token counts per session.
+- **Cost Metrics:** Live calculation of USD cost based on Bedrock pricing models.
+- **Latency Monitoring:** Tracking AI response times to ensure high advisor productivity.
+
+**AWS services:** CloudWatch, Lambda, Custom UI Telemetry
+
+---
+
+### Feature 6 — Voice Concierge (Accessibility & Efficiency)
+**Problem statement reference:** Section 4.6
+
+Hands-free interaction for busy advisors using native browser speech APIs:
+- **Voice-to-Text:** Click-to-speak functionality for natural language queries.
+- **Text-to-Voice:** Professional AI-generated audio for reading back portfolio summaries and research.
+- **Auto-Speak:** Toggleable setting for seamless conversational feedback.
+
+**AWS services:** Browser Web Speech API, Bedrock (Llama 3.1)
+
+---
+
+### Feature 7 — Human-in-the-Loop Supervision (HITL Compliance)
+**Problem statement reference:** Section 10 (Strict Oversight)
+
+A secondary layer of human verification for high-risk AI recommendations:
+- **Advice Suspension:** Risky recommendations are blocked and sent to a "Pending Review" queue.
+- **Supervisor Dashboard:** Management can Approve or Override AI advice with mandatory audit notes.
+- **Audit Persistence:** Every human decision is logged permanently to DynamoDB for regulatory review.
+
+**AWS services:** DynamoDB, Lambda, FastAPI, CloudWatch
+
+---
+
 ## Architecture
 
 ```
-User Browser
+User Browser (Voice-Enabled)
     |
     v
 FastAPI Server (EC2:8080) ← HTTP Basic Auth (username + password)
     |
     ├── /api/chat ──────────────→ API Gateway → Lambda → Bedrock (Llama 3.1)
     |                                                          ↕
-    |                                                      DynamoDB (memory)
+    |                                                      DynamoDB (History)
+    |
+    ├── /api/supervision ────────→ DynamoDB (Review Queue) ← Supervisor Approval
     |
     ├── /api/rag ───────────────→ RAG Server (EC2:8000)
     |                                   ↕
@@ -139,7 +176,7 @@ FastAPI Server (EC2:8080) ← HTTP Basic Auth (username + password)
     |
     ├── /api/client360 ──────────→ API Gateway → Lambda → Bedrock (Llama 3.1)
     |
-    └── /api/compliance ─────────→ Local Rule Engine → CloudWatch Logs
+    └── /api/observability ──────→ CloudWatch Metrics + Telemetry Console
 ```
 
 ---
@@ -249,7 +286,10 @@ advisor-ai/
 ├── AdvisorAI_Feature1_Documentation.md
 ├── AdvisorAI_Feature2_Documentation.md
 ├── AdvisorAI_Feature3_Documentation.md
-└── AdvisorAI_Feature4_Documentation.md
+├── AdvisorAI_Feature4_Documentation.md
+├── AdvisorAI_Feature5_Documentation.md
+├── AdvisorAI_Feature6_Documentation.md
+└── AdvisorAI_Feature7_Documentation.md
 ```
 
 ### EC2 Structure (separate machine)
@@ -405,7 +445,7 @@ aws apigateway update-usage-plan \
 | DynamoDB | $0 | Free tier (25GB) |
 | S3 | $0 | Free tier (5GB) |
 | CloudWatch | $0 | Free tier (5GB logs) |
-| Bedrock Llama 3.1 | ~$0.30 | For entire 12-day project |
+| Bedrock Llama 3.1 | ~$0.30 | For the entire project duration |
 | **TOTAL** | **~₹25** | **For the entire project** |
 
 ---
@@ -433,6 +473,9 @@ Each feature has a detailed technical implementation document:
 | `AdvisorAI_Feature2_Documentation.md` | S3, EC2 setup, ChromaDB, RAG pipeline, PDF ingestion |
 | `AdvisorAI_Feature3_Documentation.md` | CRM data, Client 360 brief generation, meeting prep |
 | `AdvisorAI_Feature4_Documentation.md` | Compliance rules, CloudWatch audit, Streamlit → FastAPI pivot |
+| `AdvisorAI_Feature5_Documentation.md` | AI Observability, latency tracking, cost monitoring |
+| `AdvisorAI_Feature6_Documentation.md` | Voice concierge, Web Speech API, TTS implementation |
+| `AdvisorAI_Feature7_Documentation.md` | Human-in-the-loop, DynamoDB Queue, Supervisor workflow |
 
 ---
 
