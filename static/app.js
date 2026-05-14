@@ -442,27 +442,33 @@ async function checkSystemStatus() {
         const data = await response.json();
         
         // Update API Gateway
-        const apigwText = document.getElementById('text-apigw');
+        const apigwDot = document.getElementById('status-apigw');
         if (data.api_gateway === 'active') {
-            apigwText.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500" id="status-apigw"></span> <span class="text-gray-300">API Gateway Active</span>';
+            apigwDot.classList.remove('bg-gray-600', 'bg-red-500');
+            apigwDot.classList.add('bg-green-500');
         } else {
-            apigwText.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500" id="status-apigw"></span> <span class="text-red-400">API Gateway Offline</span>';
+            apigwDot.classList.remove('bg-gray-600', 'bg-green-500');
+            apigwDot.classList.add('bg-red-500');
         }
         
         // Update Bedrock (tied to API GW)
-        const bedrockText = document.getElementById('text-bedrock');
+        const bedrockDot = document.getElementById('status-bedrock');
         if (data.bedrock === 'active') {
-            bedrockText.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500" id="status-bedrock"></span> <span class="text-gray-300">Llama 3.1 Bedrock</span>';
+            bedrockDot.classList.remove('bg-gray-600', 'bg-red-500');
+            bedrockDot.classList.add('bg-green-500');
         } else {
-            bedrockText.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500" id="status-bedrock"></span> <span class="text-red-400">Bedrock Offline</span>';
+            bedrockDot.classList.remove('bg-gray-600', 'bg-green-500');
+            bedrockDot.classList.add('bg-red-500');
         }
         
         // Update EC2
-        const ec2Text = document.getElementById('text-ec2');
+        const ec2Dot = document.getElementById('status-ec2');
         if (data.ec2_rag === 'active') {
-            ec2Text.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500" id="status-ec2"></span> <span class="text-gray-300">EC2 ChromaDB</span>';
+            ec2Dot.classList.remove('bg-gray-600', 'bg-red-500');
+            ec2Dot.classList.add('bg-green-500');
         } else {
-            ec2Text.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500" id="status-ec2"></span> <span class="text-red-400">EC2 Offline</span>';
+            ec2Dot.classList.remove('bg-gray-600', 'bg-green-500');
+            ec2Dot.classList.add('bg-red-500');
         }
         
     } catch (err) {
