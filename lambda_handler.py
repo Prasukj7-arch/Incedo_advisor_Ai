@@ -8,6 +8,7 @@ MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
 SESSION_TABLE = "advisor-ai-sessions"
+SUPERVISION_TABLE = "advisor-ai-supervision"
 
 PORTFOLIO_DATA = {
   "clients": [
@@ -249,6 +250,30 @@ def save_metrics(feature: str, metrics: dict):
         pass
 
 
+def send_to_supervision(client_profile: dict, feature: str, recommendation: str, violations: list, metrics: dict):
+    """Saves a flagged recommendation to the supervision queue for human review."""
+    try:
+        table = dynamodb.Table(SUPERVISION_TABLE)
+        review_id = f"REV-{int(datetime.utcnow().timestamp())}"
+        table.put_item(Item={
+            "review_id": review_id,
+            "status": "PENDING",
+            "client_id": client_profile.get("id", "UNKNOWN"),
+            "client_name": client_profile.get("name", "Unknown"),
+            "feature": feature,
+            "recommendation": recommendation,
+            "violations": violations,
+            "metrics": metrics,
+            "created_at": datetime.utcnow().isoformat(),
+            "decision": None,
+            "supervisor_notes": None
+        })
+        return review_id
+    except Exception as e:
+        print(f"Supervision queue error: {e}")
+        return None
+
+
 def handle_portfolio_chat(body: dict) -> dict:
     question = body.get("question", "").strip()
     if question == "health_check":
@@ -280,7 +305,12 @@ def handle_portfolio_chat(body: dict) -> dict:
         log_audit_trail("UNKNOWN_CLIENT", "portfolio_chat", answer, [])
         
     if violations:
-        answer += "\n\n⚠️ COMPLIANCE WARNING: This recommendation has been flagged: " + ", ".join(violations)
+        review_id = send_to_supervision(client_profile, "portfolio_chat", answer, violations, metrics)
+        status_msg = f"🛡️ ADVICE SUSPENDED: This recommendation triggered {len(violations)} compliance violations and has been sent to the Supervision Queue (ID: {review_id}) for human approval. It will NOT be visible to the client until approved."
+        answer = status_msg
+        status_code = "PENDING_REVIEW"
+    else:
+        status_code = "APPROVED"
 
     history.append({"role": "assistant", "content": answer})
     save_session(session_id, history)
@@ -289,6 +319,7 @@ def handle_portfolio_chat(body: dict) -> dict:
         "body": json.dumps({
             "answer": answer,
             "session_id": session_id,
+            "status_code": status_code,
             "turn": len(history) // 2,
             "metrics": metrics
         }, default=float)
@@ -348,7 +379,12 @@ Generate a professional meeting preparation brief for {client['name']} with thes
     log_audit_trail(client["id"], "client360_brief", answer, violations)
     
     if violations:
-        answer += "\n\n⚠️ COMPLIANCE WARNING: The generated talking points contain flagged terms: " + ", ".join(violations)
+        review_id = send_to_supervision(client, "client360_brief", answer, violations, metrics)
+        status_msg = f"🛡️ BRIEF SUSPENDED: This brief triggered {len(violations)} compliance violations and has been sent to the Supervision Queue (ID: {review_id}) for review."
+        answer = status_msg
+        status_code = "PENDING_REVIEW"
+    else:
+        status_code = "APPROVED"
 
     return {
         "statusCode": 200, "headers": CORS_HEADERS,
@@ -359,6 +395,7 @@ Generate a professional meeting preparation brief for {client['name']} with thes
             "risk_profile": client["risk_profile"],
             "compliance_flags": client["compliance_flags"],
             "brief": answer,
+            "status_code": status_code,
             "metrics": {k: float(v) if isinstance(v, Decimal) else v for k, v in metrics.items()}
         })
     }

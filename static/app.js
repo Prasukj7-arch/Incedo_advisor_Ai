@@ -17,7 +17,8 @@ const sectionData = {
     'feature-rag': { title: 'Research Search', subtitle: 'Search across 5 financial research reports using natural language.' },
     'feature-client360': { title: 'Client 360 — Meeting Prep', subtitle: 'Generate a complete meeting preparation brief for any client instantly.' },
     'feature-compliance': { title: 'Compliance Monitor', subtitle: 'Real-time compliance checks across all client portfolios with CloudWatch audit logging.' },
-    'feature-observability': { title: 'AI Observability Console', subtitle: 'Real-time AWS Bedrock token usage, latency, and cost tracking.' }
+    'feature-observability': { title: 'AI Observability Console', subtitle: 'Real-time AWS Bedrock token usage, latency, and cost tracking.' },
+    'feature-supervision': { title: 'Supervision Queue', subtitle: 'Human-in-the-loop review for high-risk AI recommendations.' }
 };
 
 navItems.forEach(item => {
@@ -559,3 +560,119 @@ async function loadObservability() {
         alert('Error: ' + err.message);
     }
 }
+
+// -----------------------------------------------------------
+// FEATURE 6: Supervision Queue
+// -----------------------------------------------------------
+async function loadSupervisionQueue() {
+    const list = document.getElementById('sup-list');
+    const empty = document.getElementById('sup-empty');
+    const loader = document.getElementById('sup-loader');
+    const badge = document.getElementById('supervision-badge');
+
+    list.classList.add('hidden');
+    empty.classList.add('hidden');
+    loader.classList.remove('hidden');
+
+    try {
+        const response = await fetch('/api/supervision/pending');
+        const data = await response.json();
+        loader.classList.add('hidden');
+
+        if (data.length === 0) {
+            empty.classList.remove('hidden');
+            badge.classList.add('hidden');
+        } else {
+            list.classList.remove('hidden');
+            list.classList.add('flex');
+            badge.textContent = data.length;
+            badge.classList.remove('hidden');
+
+            list.innerHTML = '';
+            data.forEach(item => {
+                const violationsHtml = item.violations.map(v => `
+                    <span class="px-2 py-1 bg-red-900/30 text-red-400 border border-red-500/30 rounded text-[10px] font-bold">
+                        ${v}
+                    </span>
+                `).join(' ');
+
+                list.innerHTML += `
+                    <div class="glass p-6 rounded-2xl border border-gray-700/50 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-3">
+                            <span class="text-[10px] font-mono text-gray-500 uppercase">${item.review_id}</span>
+                        </div>
+                        
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-xl font-bold">
+                                ${item.client_name.substring(0, 1)}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-lg">${item.client_name}</h4>
+                                <p class="text-xs text-gray-500">Feature: ${item.feature.replace('_', ' ').toUpperCase()}</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="text-xs font-bold text-gray-500 uppercase mb-2">Violations Detected</p>
+                            <div class="flex flex-wrap gap-2">${violationsHtml}</div>
+                        </div>
+
+                        <div class="bg-black/30 p-4 rounded-xl border border-gray-700/50 mb-6">
+                            <p class="text-xs font-bold text-gray-500 uppercase mb-2">Proposed Recommendation</p>
+                            <p class="text-sm text-gray-300 italic">"${item.recommendation}"</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <textarea id="notes-${item.review_id}" class="w-full bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-sm text-gray-200 focus:outline-none focus:border-blue-500" rows="2" placeholder="Add supervisor notes here..."></textarea>
+                            <div class="flex gap-3">
+                                <button onclick="submitSupervisionAction('${item.review_id}', 'APPROVE')" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-check"></i> Approve Advice
+                                </button>
+                                <button onclick="submitSupervisionAction('${item.review_id}', 'OVERRIDE')" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-xmark"></i> Override & Block
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    } catch (err) {
+        loader.classList.add('hidden');
+        alert('Supervision fetch error: ' + err.message);
+    }
+}
+
+async function submitSupervisionAction(reviewId, action) {
+    const notes = document.getElementById(`notes-${reviewId}`).value;
+    if (!notes) {
+        alert("Mandatory: Please provide supervisor notes explaining the decision.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/supervision/action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                review_id: reviewId,
+                action: action,
+                notes: notes
+            })
+        });
+
+        if (response.ok) {
+            alert(`Successfully ${action.toLowerCase()}d recommendation ${reviewId}.`);
+            loadSupervisionQueue(); // Refresh the list
+        } else {
+            const data = await response.json();
+            alert(`Action failed: ${data.detail}`);
+        }
+    } catch (err) {
+        alert(`Error: ${err.message}`);
+    }
+}
+
+// Initial check for supervision queue
+loadSupervisionQueue();
+setInterval(loadSupervisionQueue, 60000); // Check every minute
