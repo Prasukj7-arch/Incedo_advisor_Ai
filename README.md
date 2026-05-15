@@ -3,32 +3,50 @@
 
 ---
 
+## 🌐 Live Demo
+
+```
+URL:      https://strained-aletha-easeled.ngrok-free.dev
+Username: incedo
+Password: advisor2026
+```
+
+---
+
 ## 📋 Table of Contents
+
 1. [Project Overview](#project-overview)
 2. [Problem Statement](#problem-statement)
 3. [Features Built](#features-built)
 4. [Architecture](#architecture)
-5. [Technology Decisions](#technology-decisions)
-6. [AWS Services Used](#aws-services-used)
-7. [What Changed and Why](#what-changed-and-why)
+5. [Technology Decisions & Why](#technology-decisions--why)
+6. [What Changed From Original Plan & Why](#what-changed-from-original-plan--why)
+7. [AWS Services Used](#aws-services-used)
 8. [Project Structure](#project-structure)
-9. [API Reference](#api-reference)
+9. [Security Implementation](#security-implementation)
 10. [How to Run Locally](#how-to-run-locally)
-11. [Live Deployment](#live-deployment)
-12. [Cost Summary](#cost-summary)
-13. [Security](#security)
-14. [Documentation](#documentation)
+11. [Live Deployment Guide](#live-deployment-guide)
+12. [Daily Operations](#daily-operations)
+13. [Cost Summary](#cost-summary)
+14. [API Reference](#api-reference)
+15. [Documentation Index](#documentation-index)
+16. [KPIs Addressed](#kpis-addressed)
 
 ---
 
 ## Project Overview
 
-Advisor AI is an **AI-powered financial advisor concierge** built entirely on AWS managed services. It allows financial advisors at broker-dealer firms to interact with client portfolio data, search research reports, prepare for client meetings, and monitor compliance — all through a single, conversational natural language interface.
+Advisor AI is an **AI-powered financial advisor concierge** that allows financial advisors at broker-dealer firms to:
 
-This project was built as part of the **Incedo University AI-First initiative** and the AWS AI Practitioner certification program.
+- Chat with their client portfolio data in natural language
+- Search across financial research reports instantly using RAG
+- Generate complete meeting preparation briefs in seconds
+- Monitor compliance violations in real-time across all client portfolios
+- Track AI observability metrics including tokens, cost, and latency
+- Interact using voice input and auto-spoken responses
+- Enforce human-in-the-loop supervision for high-risk AI recommendations
 
-**Total AWS cost:** ~$0.05 (₹4) for the entire project  
-**Live URL:** `https://strained-aletha-easeled.ngrok-free.dev` (wraps `http://EC2_IP:8080` with secure HTTPS)
+Everything runs on AWS managed services with a professional glassmorphism web interface, secured behind HTTP Basic Authentication, and served over HTTPS via ngrok.
 
 ---
 
@@ -44,168 +62,242 @@ Financial advisors in broker-dealer firms operate in a highly fragmented ecosyst
 
 **Objective:** Build an AI-powered Advisor Concierge that acts as a real-time intelligent assistant to advisors — enhancing productivity, decision-making, and client engagement while ensuring compliance.
 
+*Source: Incedo University Mini Project Problem Statement*
+
 ---
 
 ## Features Built
 
-### Feature 1 — Portfolio Chat (Advisor Productivity)
-**Problem statement reference:** Section 4.1
+The application is split into two categories:
 
-Advisors can ask natural language questions about their client portfolios:
+### 🏠 Advisor Tools (Daily Use)
+
+---
+
+### Feature 1 — Portfolio Chat
+**Problem statement reference:** Section 4.1 (Advisor Productivity)
+
+Advisors can ask natural language questions about their client portfolios and get instant, structured answers with specific numbers, risk flags, and actionable recommendations. Conversation memory is maintained across turns using DynamoDB.
+
+**Example queries:**
 - "Summarize my entire book performance today"
 - "What are the top risks in Rahul's portfolio?"
 - "Which clients need rebalancing?"
-
-The AI responds with specific numbers, percentages, risk flags, and actionable recommendations. Multi-turn conversation memory means advisors can ask follow-up questions naturally.
 
 **AWS services:** Lambda, API Gateway, Bedrock (Llama 3.1), DynamoDB
 
 ---
 
-### Feature 2 — RAG Research Search (Conversational Search)
+### Feature 2 — RAG Research Search
 **Problem statement reference:** Section 4.4, Section 5.3
 
-Advisors can search across 5 financial research reports using natural language:
-- "What are the top picks in semiconductor sector?"
-- "What is the outlook for Indian banking?"
-- "What is India's GDP growth forecast?"
-
-The AI retrieves relevant chunks from actual PDFs and generates grounded, cited answers — not hallucinations.
+Advisors can search across 5 financial research reports using natural language. The system retrieves relevant chunks from actual PDFs and generates grounded, cited answers — not hallucinations.
 
 **Research reports indexed:**
-- Goldman Sachs — Semiconductor Sector Outlook 2025
-- Morgan Stanley — Indian Banking Sector Q1 2025
-- JP Morgan — Indian IT Sector Outlook FY2026
-- UBS — FMCG Sector Analysis India 2025
-- Deutsche Bank — India Macro Outlook 2025-2026
+
+| Report | Source |
+|---|---|
+| Semiconductor Sector Outlook 2025 | Goldman Sachs Research |
+| Indian Banking Sector Q1 2025 | Morgan Stanley Research |
+| Indian IT Sector Outlook FY2026 | JP Morgan Research |
+| FMCG Sector Analysis India 2025 | UBS Research |
+| India Macro Outlook 2025-2026 | Deutsche Bank Research |
 
 **AWS services:** EC2 (t3.micro), S3, Bedrock (Llama 3.1), ChromaDB
 
 ---
 
-### Feature 3 — Client 360 Meeting Prep (Client Intelligence)
-**Problem statement reference:** Section 4.1, Section 4.2
+### Feature 3 — Client 360 Meeting Prep
+**Problem statement reference:** Section 4.1, Section 4.2 (Client Intelligence)
 
-One click generates a complete meeting preparation brief for any client:
-- Client snapshot (age, AUM, risk profile, occupation)
-- Meeting agenda (3 personalized talking points)
-- Portfolio actions (specific rebalancing suggestions)
-- Cross-sell opportunities (ranked by priority)
-- Compliance alerts (any flags to be aware of)
-- Suggested opening line (personalized conversation starter)
+One click generates a complete meeting preparation brief containing:
+1. Client Snapshot (age, AUM, risk profile, occupation)
+2. Meeting Agenda (3 personalized talking points based on life events)
+3. Portfolio Actions (specific rebalancing suggestions)
+4. Cross-sell Opportunities (ranked by priority with reasoning)
+5. Compliance Alerts (any flags to be aware of before the meeting)
+6. Suggested Opening Line (personalized conversation starter)
 
 **AWS services:** Lambda, API Gateway, Bedrock (Llama 3.1)
 
 ---
 
-### Feature 4 — Compliance Monitor (Governance & Risk Controls)
-**Problem statement reference:** Section 4.5, Section 5.5
+### Feature 4 — Compliance Monitor
+**Problem statement reference:** Section 4.5, Section 5.5 (Governance & Risk Controls)
 
-A real-time rule engine runs 6 automated compliance checks across all client portfolios:
+A real-time rule engine runs 6 automated compliance checks across all client portfolios. Every violation is logged to AWS CloudWatch for a complete, audit-ready trail.
+
+**Compliance rules:**
 
 | Rule | Check | Severity |
 |---|---|---|
-| Equity Concentration | Conservative client > 70% equity | HIGH |
-| Aggressive Overweight | Any client > 85% equity | MEDIUM |
-| Cash Drag | Cash > 20% | LOW |
-| KYC Refresh | Pending compliance flags | HIGH |
-| Fixed Income Underweight | Conservative client < 40% fixed income | MEDIUM |
-| Large Day Loss | Equity day change < -3% | HIGH |
+| Equity Concentration | Conservative client > 70% equity | 🔴 HIGH |
+| Aggressive Overweight | Any client > 85% equity | 🟡 MEDIUM |
+| Cash Drag | Cash allocation > 20% | 🟢 LOW |
+| KYC Refresh Required | Pending compliance flags exist | 🔴 HIGH |
+| Fixed Income Underweight | Conservative client < 40% fixed income | 🟡 MEDIUM |
+| Large Single Day Loss | Equity day change < -3% | 🔴 HIGH |
 
-Every violation is logged to **AWS CloudWatch** for a complete audit trail — making the system audit-ready as required by Section 5.5.
-
-**AWS services:** CloudWatch Logs, Lambda (IAM policy)
+**AWS services:** CloudWatch Logs, Lambda, DynamoDB
 
 ---
 
-### Feature 5 — AI Observability (Telemetry & Cost Controls)
-**Internal Use Only**
+### Feature 6 — Voice Concierge
+**Problem statement reference:** Section 5.1, Section 7.1
 
-Real-time monitoring of LLM usage across the entire platform:
-- **Token Tracking:** Monitoring input/output token counts per session.
-- **Cost Metrics:** Live calculation of USD cost based on Bedrock pricing models.
-- **Latency Monitoring:** Tracking AI response times to ensure high advisor productivity.
+Enables advisors to interact with the system using natural speech — a truly hands-free experience.
 
-**AWS services:** CloudWatch, Lambda, Custom UI Telemetry
-
----
-
-### Feature 6 — Voice Concierge (Accessibility & Efficiency)
-**Problem statement reference:** Section 4.6
-
-Hands-free interaction for busy advisors using native browser speech APIs:
-- **Voice-to-Text:** Click-to-speak functionality for natural language queries.
-- **Text-to-Voice:** Professional AI-generated audio for reading back portfolio summaries and research.
-- **Auto-Speak:** Toggleable setting for seamless conversational feedback.
-
-**AWS services:** Browser Web Speech API, Bedrock (Llama 3.1)
+- **Voice-to-Text:** Advisor clicks the mic icon and speaks. Voice is processed locally in the browser using the Web Speech API and submitted automatically to the AI backend.
+- **Text-to-Voice:** When "Auto-Speak" is toggled on, the AI reads its response aloud in a professional voice.
+- **Zero Cost:** Uses browser-native APIs — no AWS Polly or external TTS service needed.
+- **Privacy:** Voice processing is local — only the final text reaches the AWS backend.
 
 ---
 
-### Feature 7 — Human-in-the-Loop Supervision (HITL Compliance)
-**Problem statement reference:** Section 10 (Strict Oversight)
+### 🛡️ Management & Risk (Back-Office)
 
-A secondary layer of human verification for high-risk AI recommendations:
-- **Advice Suspension:** Risky recommendations are blocked and sent to a "Pending Review" queue.
-- **Supervisor Dashboard:** Management can Approve or Override AI advice with mandatory audit notes.
-- **Audit Persistence:** Every human decision is logged permanently to DynamoDB for regulatory review.
+---
 
-**AWS services:** DynamoDB, Lambda, FastAPI, CloudWatch
+### Feature 5 — AI Observability Console
+**Problem statement reference:** Section 6.5 (Observability)
+
+A real-time operational dashboard showing every Bedrock invocation's telemetry, directly from AWS.
+
+**Metrics tracked per call:**
+- Input tokens + Output tokens (from Bedrock response headers)
+- Latency in milliseconds
+- Cost in USD and INR ($0.22/1M tokens)
+- Feature attribution (which tab triggered the call)
+
+**Dashboard shows:**
+- Total API calls since deployment
+- Total tokens consumed
+- Total cost in USD and INR
+- Average latency per call
+- Per-feature usage breakdown with progress bars
+- Recent 10 invocations timeline
+
+**AWS services:** DynamoDB (`advisor-ai-metrics`), Bedrock headers, Lambda, EC2 RAG server
+
+---
+
+### Feature 7 — Human-in-the-Loop Supervision Queue
+**Problem statement reference:** Section 10 (Governance & Risk Controls — Human-in-the-Loop)
+
+The most enterprise-grade feature. When the AI generates a recommendation that triggers a compliance violation, it does not warn — it **suspends** the advice entirely and routes it to a human supervisor for review.
+
+**Workflow:**
+1. AI generates a recommendation
+2. Compliance engine detects a violation
+3. Advice is **blocked** — advisor receives a Review ID instead
+4. Flagged advice is saved to DynamoDB with `PENDING` status
+5. Supervisor opens the Supervision Queue tab
+6. Supervisor reads the AI rationale, types mandatory audit notes
+7. Supervisor clicks **Approve** or **Override & Block**
+8. Decision is permanently logged with timestamp and supervisor ID
+
+**AWS services:** DynamoDB (`advisor-ai-supervision`), Lambda, FastAPI, CloudWatch
 
 ---
 
 ## Architecture
 
 ```
-User Browser (Voice-Enabled)
-    |
-    v
-FastAPI Server (EC2:8080) ← HTTP Basic Auth (username + password)
-    |
-    ├── /api/chat ──────────────→ API Gateway → Lambda → Bedrock (Llama 3.1)
-    |                                                          ↕
-    |                                                      DynamoDB (History)
-    |
-    ├── /api/supervision ────────→ DynamoDB (Review Queue) ← Supervisor Approval
-    |
-    ├── /api/rag ───────────────→ RAG Server (EC2:8000)
-    |                                   ↕
-    |                              ChromaDB (29 chunks)
-    |                                   ↕
-    |                              Bedrock (Llama 3.1)
-    |
-    ├── /api/client360 ──────────→ API Gateway → Lambda → Bedrock (Llama 3.1)
-    |
-    └── /api/observability ──────→ CloudWatch Metrics + Telemetry Console
+Evaluator / Advisor Browser
+        |
+        v
+https://strained-aletha-easeled.ngrok-free.dev  (HTTPS — permanent)
+        |
+        v
+ngrok tunnel → EC2:8080
+        |
+        v
+FastAPI Server (fast_app.py) ← HTTP Basic Auth
+        |
+        ├── /api/chat ──────────────→ API Gateway → Lambda → Bedrock (Llama 3.1)
+        |                                                  ↕           ↕
+        |                                           DynamoDB       Compliance Engine
+        |                                           (sessions)     → Supervision Queue
+        |
+        ├── /api/rag ───────────────→ RAG Server (EC2:8000)
+        |                                   ↕
+        |                              ChromaDB (29 chunks)
+        |                                   ↕
+        |                         Bedrock (Llama 3.1) + Metrics → DynamoDB
+        |
+        ├── /api/client360 ──────────→ API Gateway → Lambda → Bedrock
+        |                                                  ↕
+        |                                        Supervision Queue (if flagged)
+        |
+        ├── /api/compliance ─────────→ Local Rule Engine → CloudWatch Logs
+        |
+        ├── /api/observability ───────→ DynamoDB scan → advisor-ai-metrics
+        |
+        ├── /api/supervision/pending ─→ DynamoDB scan → advisor-ai-supervision
+        └── /api/supervision/action ──→ DynamoDB update → CloudWatch audit log
 ```
 
 ---
 
-## Technology Decisions
+## Technology Decisions & Why
 
 ### Why Llama 3.1 8B (not Claude)?
-- Claude on Bedrock requires AWS Marketplace subscription which needs a Visa/Mastercard credit card
-- Llama 3.1 8B is non-legacy, serverless, cross-region inference ready
-- Cost: $0.22/1M tokens vs $0.80+ for Claude equivalents
-- Quality: More than sufficient for financial advisory Q&A
+
+Claude on Bedrock requires an AWS Marketplace subscription which needs a credit card. We tested multiple models:
+
+| Model Tested | Result | Reason Rejected |
+|---|---|---|
+| claude-3-haiku-20240307 | ❌ | Legacy, blocked after first call |
+| claude-haiku-4-5-20251001 | ❌ | Marketplace subscription required |
+| titan-text-express-v1 | ❌ | End of life, deprecated |
+| titan-text-premier-v1 | ❌ | Not available in account |
+| **llama3-1-8b-instruct-v1** | ✅ | Non-legacy, serverless, works immediately |
+
+Llama 3.1 8B costs $0.22/1M tokens and produces high-quality financial advisory responses.
 
 ### Why FastAPI + HTML/CSS/JS (not Streamlit)?
+
+The original plan used Streamlit. We switched because:
 - Streamlit is rigid and looks basic — unsuitable for an executive demo
-- Custom HTML/Tailwind/JS gives glassmorphism UI, animations, typing indicators
-- FastAPI acts as a secure proxy — API keys never exposed to browser
-- Addresses Section 5.6 (Security & Access Control) of problem statement
+- Custom HTML/Tailwind CSS/Vanilla JS gives glassmorphism UI, animations, typing indicators
+- FastAPI acts as a **secure proxy** — AWS API keys never exposed to the browser
+- Addresses Section 5.6 (Security & Access Control) of the problem statement
 
 ### Why ChromaDB on EC2 (not Bedrock Knowledge Base)?
-- Bedrock Knowledge Base requires OpenSearch Serverless: **$350-700/month minimum**
-- ChromaDB on EC2 t3.micro: **$0 (free tier)**
-- Identical RAG output — same chunking, embedding, retrieval concept
-- Saved approximately 90% infrastructure cost with zero quality loss
+
+Bedrock Knowledge Base requires OpenSearch Serverless which costs **$350-700/month minimum** just to idle. ChromaDB on EC2 t3.micro provides identical RAG functionality at **$0 cost** (free tier).
+
+### Why Browser Web Speech API (not AWS Polly)?
+
+- AWS Polly costs $4/1M characters — adds real cost per demo
+- Browser Web Speech API is free, zero latency, processes locally
+- Voice never leaves the device — better privacy
 
 ### Why embed data in Lambda (not S3)?
-- Lambda reading from S3 on every request adds 200-400ms latency
-- Embedded JSON data loads instantly with zero cold-start overhead
-- For a demo with 3 mock clients, embedded data is faster and more reliable
-- S3 is already used where it makes sense: research PDFs storage
+
+Lambda reading from S3 on every request adds 200-400ms latency. Embedded JSON data loads instantly. S3 is used where it makes sense: storing the research PDFs.
+
+### Why ngrok for HTTPS?
+
+- AWS Certificate Manager + Load Balancer = $16/month
+- ngrok free tier = $0, permanent static domain, instant HTTPS
+- Gives a permanent URL that never changes — safe to share with evaluators
+
+---
+
+## What Changed From Original Plan & Why
+
+| Original Plan | What We Built | Why It Changed |
+|---|---|---|
+| Claude 3.5 Haiku | Llama 3.1 8B | Claude needs marketplace subscription requiring credit card |
+| Bedrock Knowledge Base + OpenSearch | ChromaDB on EC2 | OpenSearch costs $350-700/month, ChromaDB is free |
+| Streamlit UI | HTML/Tailwind/JS + FastAPI | Streamlit too rigid, custom UI looks professional |
+| Mock data in S3 | Embedded in Lambda | S3 reads add latency, embedded data is instant |
+| HTTP on raw IP | HTTPS via ngrok | Security and professionalism for evaluator access |
+| No auth | HTTP Basic Auth | Prevent unauthorized access to live demo |
+| No voice | Browser Web Speech API | Section 5.1 explicitly requires voice interaction |
+| No observability | DynamoDB metrics + Dashboard | Section 6.5 requires AI model performance tracking |
+| No human oversight | HITL Supervision Queue | Section 10 explicitly mandates human-in-the-loop |
 
 ---
 
@@ -213,75 +305,44 @@ FastAPI Server (EC2:8080) ← HTTP Basic Auth (username + password)
 
 | Service | Purpose | Cost |
 |---|---|---|
-| Amazon Bedrock (Llama 3.1 8B) | LLM inference for all 4 features | $0.22/1M tokens |
-| AWS Lambda (Python 3.12) | Serverless compute for chat + client360 | Free tier |
+| Amazon Bedrock (Llama 3.1 8B) | LLM inference — all features | $0.22/1M tokens |
+| AWS Lambda (Python 3.12) | Serverless compute — chat + client360 | Free tier |
 | Amazon API Gateway | HTTPS endpoints with API key auth | Free tier |
-| Amazon DynamoDB | Multi-turn conversation memory | Free tier |
-| Amazon EC2 (t3.micro) | Hosts RAG server + Web frontend | Free tier |
+| Amazon DynamoDB | Sessions + Metrics + Supervision tables | Free tier |
+| Amazon EC2 (t3.micro) | RAG server + Web frontend + ngrok | Free tier |
 | Amazon S3 | Stores 5 research PDFs | Free tier |
-| AWS CloudWatch Logs | Compliance violation audit trail | Free tier |
+| AWS CloudWatch Logs | Compliance + supervision audit trail | Free tier |
 | AWS IAM | Role-based access control | Free |
-
-**Total project cost: ~$0.05 (₹4)**
-
----
-
-## What Changed and Why
-
-### Change 1: LLM Model
-| Original Plan | What We Built | Reason |
-|---|---|---|
-| Claude 3.5 Haiku | Llama 3.1 8B | Claude requires marketplace subscription needing credit card. Llama works immediately with no subscription. |
-
-### Change 2: Vector Database
-| Original Plan | What We Built | Reason |
-|---|---|---|
-| Bedrock Knowledge Base + OpenSearch Serverless | ChromaDB on EC2 | OpenSearch costs $350-700/month idle. ChromaDB is free, identical RAG output. |
-
-### Change 3: Frontend
-| Original Plan | What We Built | Reason |
-|---|---|---|
-| Streamlit dashboard | HTML/Tailwind/JS + FastAPI | Streamlit too rigid for professional demo. Custom UI gives glassmorphism design, animations, proper security proxy. |
-
-### Change 4: Data Storage
-| Original Plan | What We Built | Reason |
-|---|---|---|
-| Mock data in S3 | Embedded in Lambda | S3 reads add latency. Embedded data loads instantly. S3 used for research PDFs where it makes sense. |
-
-### Change 5: Models tested and rejected
-- `anthropic.claude-3-haiku-20240307-v1:0` — Legacy, blocked after first call
-- `anthropic.claude-haiku-4-5-20251001-v1:0` — Marketplace subscription required
-- `amazon.titan-text-express-v1` — End of life, deprecated
-- `amazon.titan-text-premier-v1:0` — Not available in account region
+| **Total project cost** | | **~₹4 ($0.05)** |
 
 ---
 
 ## Project Structure
 
 ```
-advisor-ai/
-├── static/                          # Frontend (served by FastAPI)
-│   ├── index.html                   # Main UI — HTML + Tailwind CSS
-│   ├── styles.css                   # Custom CSS (glassmorphism, animations)
-│   └── app.js                       # Vanilla JS (all 4 feature interactions)
+advisor-ai/                          # Local Mac project folder
+├── static/                          # Frontend (HTML/CSS/JS)
+│   ├── index.html                   # Main UI — glassmorphism SPA, 7 features
+│   ├── styles.css                   # Custom CSS (animations, glass effect)
+│   └── app.js                       # Vanilla JS — all feature interactions
 │
-├── data/                            # Mock data
+├── data/                            # Mock data files
 │   ├── portfolios.json              # 3 client portfolios with holdings
 │   └── clients.json                 # CRM data (life events, goals, flags)
 │
 ├── research_docs/                   # 5 financial research PDFs (also on S3)
 │
-├── fast_app.py                      # FastAPI server (secure proxy + auth)
-├── lambda_handler.py                # AWS Lambda (Feature 1 + Feature 3)
-├── feature1_portfolio.py            # Portfolio chat local test
+├── fast_app.py                      # FastAPI server — secure proxy + auth
+├── lambda_handler.py                # AWS Lambda — Feature 1, 3, 7
+├── feature1_portfolio.py            # Portfolio chat local test runner
 ├── feature2_rag.py                  # RAG search local wrapper
-├── feature3_client360.py            # Client 360 local test
-├── feature4_compliance.py           # Compliance rule engine
-├── bedrock_client.py                # Local Bedrock wrapper
+├── feature3_client360.py            # Client 360 local test runner
+├── feature4_compliance.py           # Compliance rule engine + CloudWatch
+├── bedrock_client.py                # Local Bedrock wrapper (Llama format)
 ├── create_research_docs.py          # Script to generate research PDFs
 ├── requirements.txt                 # Python dependencies
-├── .env                             # Secrets (gitignored)
-├── .gitignore                       # Excludes .env, .pem, .venv, etc.
+├── .env                             # Secrets — gitignored, never committed
+├── .gitignore                       # Excludes .env, .pem, .venv, lambda.zip
 │
 ├── AdvisorAI_Feature1_Documentation.md
 ├── AdvisorAI_Feature2_Documentation.md
@@ -290,45 +351,46 @@ advisor-ai/
 ├── AdvisorAI_Feature5_Documentation.md
 ├── AdvisorAI_Feature6_Documentation.md
 └── AdvisorAI_Feature7_Documentation.md
-```
 
-### EC2 Structure (separate machine)
-```
-advisor-ai-rag/
-├── rag_server.py                    # FastAPI RAG server (port 8000)
-├── research_docs/                   # 5 PDFs downloaded from S3
-└── chroma_db/                       # ChromaDB vector store (29 chunks)
+EC2 Instance (ip-172-31-43-64)
+├── advisor-ai-rag/
+│   ├── rag_server.py                # FastAPI RAG server (port 8000) + metrics
+│   ├── research_docs/               # 5 PDFs downloaded from S3
+│   └── chroma_db/                   # ChromaDB vector store (29 chunks)
+│
+├── Incedo_advisor_Ai/               # Web frontend (cloned from GitHub)
+│   ├── static/                      # Frontend files
+│   ├── fast_app.py                  # FastAPI web server (port 8080)
+│   └── feature4_compliance.py       # Compliance engine
+│
+└── start_app.sh                     # One-command startup script
 ```
 
 ---
 
-## API Reference
+## Security Implementation
 
-### Feature 1 — Portfolio Chat
-```
-POST https://API_GATEWAY_URL/chat
-Headers: x-api-key: YOUR_KEY
-Body: {"question": "Summarize my book today", "session_id": "session-001"}
-```
+The application has 4 layers of security:
 
-### Feature 2 — Research Search
-```
-POST http://EC2_IP:8000/research
-Body: {"question": "What are semiconductor top picks?"}
-```
+**Layer 1 — HTTPS (ngrok)**
+All traffic is encrypted via TLS. No raw HTTP exposed to evaluators.
 
-### Feature 3 — Client 360
-```
-POST https://API_GATEWAY_URL/client360
-Headers: x-api-key: YOUR_KEY
-Body: {"client_name": "Rahul"}
-```
+**Layer 2 — HTTP Basic Authentication (FastAPI)**
+Every request requires username + password. Wrong credentials = 401 Unauthorized.
 
-### Feature 4 — Compliance Check
-```
-# Runs locally via Python rule engine
-# Logs violations to CloudWatch: /advisor-ai/compliance
-```
+**Layer 3 — API Key Authentication (API Gateway)**
+All Lambda endpoints require `x-api-key` header. The key lives only in server environment variables — never in browser code.
+
+**Layer 4 — EC2 Security Groups**
+Only ports 22 (SSH), 8000 (RAG internal), 8080 (Web) are open at the AWS network level.
+
+**Additional practices:**
+- `.env` file gitignored — credentials never committed to GitHub
+- `.pem` key file stored on Desktop, gitignored
+- FastAPI docs disabled (`docs_url=None`)
+- MFA enabled on AWS root account
+- IAM user used instead of root for all operations
+- API throttling: 5 req/sec, 1000 req/month
 
 ---
 
@@ -364,118 +426,179 @@ open http://localhost:8080
 
 ---
 
-## Live Deployment
+## Live Deployment Guide
 
-The app is deployed on AWS EC2 (t3.micro, free tier).
+The app runs on AWS EC2 (t3.micro, free tier) with ngrok providing HTTPS.
 
-### Morning startup routine
+### start_app.sh (on EC2 home directory)
+
 ```bash
-# 1. Start EC2
-aws ec2 start-instances \
-  --instance-ids i-069a0fd9edb6c3897 --region us-east-1
-
-# 2. Get new IP (changes every restart)
-aws ec2 describe-instances \
-  --filters "Name=tag:Name,Values=advisor-ai-rag" \
-  --query "Reservations[0].Instances[0].PublicIpAddress" \
-  --output text --region us-east-1
-
-# 3. SSH in
-ssh -i ~/Desktop/advisor-ai-key.pem ec2-user@NEW_IP
-
-# 4. Start RAG server
-cd advisor-ai-rag
+#!/bin/bash
+export ADVISOR_AI_KEY=YOUR_API_KEY
+export EC2_RAG_IP=localhost
+export WEB_USERNAME=incedo
+export WEB_PASSWORD=advisor2026
+cd /home/ec2-user/Incedo_advisor_Ai
+git pull origin main
+cd /home/ec2-user/advisor-ai-rag
+pkill -f rag_server
 nohup python3 rag_server.py > rag.log 2>&1 &
-
-# 5. Start web frontend
-cd Incedo_advisor_Ai
+cd /home/ec2-user/Incedo_advisor_Ai
+pkill -f fast_app
 nohup python3 fast_app.py > web.log 2>&1 &
-exit
-
-# 6. Redeploy API Gateway
-aws apigateway create-deployment \
-  --rest-api-id 6jg65j6ajh --stage-name prod --region us-east-1
-
-aws apigateway update-usage-plan \
-  --usage-plan-id jyzpkv \
-  --patch-operations '[{"op":"add","path":"/apiStages","value":"6jg65j6ajh:prod"}]' \
-  --region us-east-1
+pkill -f ngrok
+nohup ngrok http --domain=strained-aletha-easeled.ngrok-free.dev 8080 > ngrok.log 2>&1 &
+echo "All services started!"
 ```
 
-### Securing with HTTPS (Ngrok for Demo Submission)
-To provide evaluation panels with a highly professional, secure HTTPS URL that avoids mixed-content blocks:
+---
+
+## Daily Operations
+
+### 🌙 Shutdown (before sleeping) — run on Mac
+
 ```bash
-# On EC2 terminal
-wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
-tar xvzf ngrok-v3-stable-linux-amd64.tgz
-
-# Authenticate with your free account token (gives 1 permanent static domain)
-./ngrok config add-authtoken <your_auth_token>
-
-# Launch HTTPS tunnel pointing to local FastAPI server
-./ngrok http --url=your-static-domain.ngrok-free.app 8080
-```
-
-### Nightly shutdown routine
-```bash
-# Stop EC2
+# 1. Stop EC2
 aws ec2 stop-instances \
-  --instance-ids i-069a0fd9edb6c3897 --region us-east-1
+  --instance-ids i-069a0fd9edb6c3897 \
+  --region us-east-1
 
-# Delete API Gateway stage
+# 2. Delete API Gateway stage
 aws apigateway delete-stage \
-  --rest-api-id 6jg65j6ajh --stage-name prod --region us-east-1
+  --rest-api-id 6jg65j6ajh \
+  --stage-name prod \
+  --region us-east-1
 
-# Unlink usage plan
+# 3. Unlink usage plan
 aws apigateway update-usage-plan \
   --usage-plan-id jyzpkv \
   --patch-operations '[{"op":"remove","path":"/apiStages","value":"6jg65j6ajh:prod"}]' \
   --region us-east-1
 ```
 
+### ☀️ Startup (every morning) — run on Mac
+
+```bash
+# 1. Start EC2
+aws ec2 start-instances \
+  --instance-ids i-069a0fd9edb6c3897 \
+  --region us-east-1
+
+# 2. Wait 30 seconds, get new IP
+aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values=advisor-ai-rag" \
+  --query "Reservations[0].Instances[0].PublicIpAddress" \
+  --output text --region us-east-1
+
+# 3. SSH in and run startup script
+ssh -i ~/Desktop/advisor-ai-key.pem ec2-user@NEW_IP
+./start_app.sh
+exit
+
+# 4. Redeploy API Gateway
+aws apigateway create-deployment \
+  --rest-api-id 6jg65j6ajh \
+  --stage-name prod \
+  --region us-east-1
+
+aws apigateway update-usage-plan \
+  --usage-plan-id jyzpkv \
+  --patch-operations '[{"op":"add","path":"/apiStages","value":"6jg65j6ajh:prod"}]' \
+  --region us-east-1
+
+# 5. Open the app
+open https://strained-aletha-easeled.ngrok-free.dev
+# Login: incedo / advisor2026
+```
+
 ---
 
 ## Cost Summary
 
-| Service | Monthly Cost | Notes |
+| Service | Cost | Notes |
 |---|---|---|
-| EC2 t3.micro | $0 | Free tier (750 hrs/month) |
-| Lambda | $0 | Free tier (1M requests/month) |
-| API Gateway | $0 | Free tier (1M calls/month) |
-| DynamoDB | $0 | Free tier (25GB) |
-| S3 | $0 | Free tier (5GB) |
-| CloudWatch | $0 | Free tier (5GB logs) |
-| Bedrock Llama 3.1 | ~$0.30 | For the entire project duration |
-| **TOTAL** | **~₹25** | **For the entire project** |
+| EC2 t3.micro | $0 | Free tier — 750 hrs/month |
+| Lambda | $0 | Free tier — 1M requests/month |
+| API Gateway | $0 | Free tier — 1M calls/month |
+| DynamoDB (3 tables) | $0 | Free tier — 25GB |
+| S3 | $0 | Free tier — 5GB |
+| CloudWatch | $0 | Free tier — 5GB logs |
+| ngrok | $0 | Free tier — permanent static domain |
+| Bedrock Llama 3.1 | ~$0.05 | All API calls for entire project |
+| **TOTAL** | **~₹4** | **For the entire project** |
 
 ---
 
-## Security
+## API Reference
 
-- **Web access:** HTTP Basic Authentication (username + password required)
-- **API access:** API Gateway API key (`x-api-key` header required)
-- **AWS credentials:** Never in code — loaded from `.env` (gitignored)
-- **SSH keys:** `.pem` file stored locally, gitignored
-- **EC2 security group:** Ports 22 (SSH), 8000 (RAG), 8080 (Web) only
-- **API throttling:** 5 requests/second, 1000 requests/month limit
-- **Zero trust:** FastAPI proxy ensures browser never sees AWS credentials
-- **Audit trail:** All compliance violations logged to CloudWatch
+All endpoints require HTTP Basic Auth when called through FastAPI proxy.
+
+### Portfolio Chat
+```
+POST /api/chat
+Body: {"question": "Summarize my book today", "session_id": "session-001"}
+Response: {"answer": "...", "session_id": "...", "turn": 1, "metrics": {...}}
+```
+
+### Research Search (RAG)
+```
+POST /api/rag
+Body: {"question": "What are semiconductor top picks?"}
+Response: {"answer": "...", "sources": ["goldman_sachs.pdf"]}
+```
+
+### Client 360 Meeting Prep
+```
+POST /api/client360
+Body: {"client_name": "Rahul"}
+Response: {"client_name": "Rahul Mehta", "aum": 2100000, "brief": "...", "status_code": "APPROVED"}
+```
+
+### Compliance Check
+```
+POST /api/compliance
+Body: {"client_filter": null}
+Response: {"summary": {...}, "results": [...]}
+```
+
+### AI Observability
+```
+GET /api/observability
+Response: {"summary": {...}, "by_feature": {...}, "recent_calls": [...]}
+```
+
+### Supervision Queue — Fetch Pending
+```
+GET /api/supervision/pending
+Response: [{review_id, client_name, feature, recommendation, violations, status}, ...]
+```
+
+### Supervision Queue — Take Action
+```
+POST /api/supervision/action
+Body: {"review_id": "REV-xxx", "action": "APPROVE", "notes": "Supervisor notes here"}
+Response: {"status": "success", "review_id": "REV-xxx"}
+```
+
+### System Status
+```
+GET /api/status
+Response: {"api_gateway": "active", "ec2_rag": "active", "bedrock": "active"}
+```
 
 ---
 
-## Documentation
+## Documentation Index
 
-Each feature has a detailed technical implementation document:
-
-| Document | Contents |
+| Document | What it covers |
 |---|---|
-| `AdvisorAI_Feature1_Documentation.md` | Lambda setup, API Gateway, DynamoDB, all CLI commands |
-| `AdvisorAI_Feature2_Documentation.md` | S3, EC2 setup, ChromaDB, RAG pipeline, PDF ingestion |
-| `AdvisorAI_Feature3_Documentation.md` | CRM data, Client 360 brief generation, meeting prep |
-| `AdvisorAI_Feature4_Documentation.md` | Compliance rules, CloudWatch audit, Streamlit → FastAPI pivot |
-| `AdvisorAI_Feature5_Documentation.md` | AI Observability, latency tracking, cost monitoring |
-| `AdvisorAI_Feature6_Documentation.md` | Voice concierge, Web Speech API, TTS implementation |
-| `AdvisorAI_Feature7_Documentation.md` | Human-in-the-loop, DynamoDB Queue, Supervisor workflow |
+| `AdvisorAI_Feature1_Documentation.md` | Lambda setup, API Gateway, DynamoDB sessions, all CLI commands |
+| `AdvisorAI_Feature2_Documentation.md` | S3 bucket, EC2 launch, ChromaDB, PDF ingestion, RAG pipeline |
+| `AdvisorAI_Feature3_Documentation.md` | CRM data structure, Client 360 brief, meeting prep prompt engineering |
+| `AdvisorAI_Feature4_Documentation.md` | 6 compliance rules, CloudWatch audit logging, FastAPI deployment |
+| `AdvisorAI_Feature5_Documentation.md` | Bedrock telemetry, DynamoDB metrics table, observability dashboard |
+| `AdvisorAI_Feature6_Documentation.md` | Web Speech API, voice-to-text, text-to-voice, Auto-Speak toggle |
+| `AdvisorAI_Feature7_Documentation.md` | HITL workflow, supervision DynamoDB table, approve/override audit |
 
 ---
 
@@ -485,24 +608,24 @@ From Section 12 of the problem statement:
 
 | KPI | How Addressed |
 |---|---|
-| Advisor productivity improvement | Portfolio chat reduces research time from hours to seconds |
-| Reduction in client response time | Client 360 generates meeting brief in < 5 seconds |
-| Compliance violations reduction | Real-time rule engine catches violations before meetings |
-| User adoption and engagement | Professional glassmorphism UI designed for daily use |
+| Advisor productivity improvement | Portfolio chat + Voice concierge reduces research time from hours to seconds |
+| Reduction in client response time | Client 360 generates complete meeting brief in under 5 seconds |
+| Compliance violations reduction | Real-time rule engine + HITL supervision catches violations before they reach clients |
+| User adoption and engagement | Professional glassmorphism UI with voice, dark mode, and real-time status indicators |
+| AUM / revenue per advisor | Cross-sell opportunities surfaced in every Client 360 brief |
+| AI model performance tracking | Full observability console with cost, token, and latency metrics per feature |
 
 ---
 
 ## Acknowledgements
 
-Built as part of **Incedo University — Incedo 4.0 AI-First Initiative**
+Built as part of **Incedo University — Incedo 4.0 AI-First Vision**
 
-Courses completed:
-- Prompt Engineering Practical Course (Udemy)
-- AWS AI Practitioner Certification (AWS Skill Builder)
-- Microsoft Copilot Training
-
-*This project demonstrates practical application of GenAI, AWS Bedrock, RAG pipelines, serverless architecture, and secure web deployment — all within AWS free tier limits.*
+Courses completed as part of this initiative:
+- ✅ Prompt Engineering Practical Course (Udemy)
+- ✅ AWS AI Practitioner Certification (AWS Skill Builder)
+- ✅ Microsoft Copilot Training (Microsoft Learn)
 
 ---
 
-*Advisor AI | May 2026 | Built with AWS Bedrock + Llama 3.1 + EC2 + Lambda + DynamoDB*
+*💼 Advisor AI | May 2026 | AWS Bedrock + Llama 3.1 + EC2 + Lambda + DynamoDB + ngrok*
