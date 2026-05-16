@@ -409,43 +409,34 @@ def handle_scenario_simulation(body: dict) -> dict:
 
 
 def handle_dashboard_data(body: dict) -> dict:
-  ...
-]
-
-JSON only."""
-
-    answer_json, metrics = call_llama("You are a proactive advisor concierge.", [{"role": "user", "content": prompt}])
-    save_metrics("dashboard_insights", metrics)
-    
-    try:
-        clean_json = answer_json.replace('```json', '').replace('```', '').strip()
-        insights = json.loads(clean_json)
-        return {
-            "statusCode": 200, "headers": CORS_HEADERS,
-            "body": json.dumps({
-                "total_aum": f"${total_aum/1000000:.1f}M",
-                "avg_return": f"{avg_return:.1f}%",
-                "client_count": len(PORTFOLIO_DATA["clients"]),
-                "insights": insights
-            })
-        }
-    except Exception as e:
-        return {
-            "statusCode": 200, "headers": CORS_HEADERS,
-            "body": json.dumps({
-                "total_aum": f"${total_aum/1000000:.1f}M",
-                "avg_return": f"{avg_return:.1f}%",
-                "client_count": len(PORTFOLIO_DATA["clients"]),
-                "insights": [
-                    {"type": "info", "text": "Review today's top research reports for market shifts.", "client": "All"},
-                    {"type": "warning", "text": "Check equity concentration in aggressive portfolios.", "client": "Rahul Mehta"}
-                ]
-            })
-        }
-
+    return feature9_dashboard.handle_dashboard_data(body, PORTFOLIO_DATA, call_llama, save_metrics, CORS_HEADERS)
 
 def handle_revenue_opportunities(body: dict) -> dict:
     return feature10_revenue.handle_revenue_opportunities(body, PORTFOLIO_DATA, CLIENT_DATA, call_llama, save_metrics, CORS_HEADERS)
+
+
+def handle_compliance_check(body: dict) -> dict:
+    """Restored Feature 4: Full-book compliance monitoring."""
+    results = []
+    for client in PORTFOLIO_DATA["clients"]:
+        status, flags = check_compliance(client)
+        results.append({
+            "client": client["name"],
+            "status": status,
+            "flags": flags,
+            "aum": client["aum"]
+        })
+    
+    return {
+        "statusCode": 200,
+        "headers": CORS_HEADERS,
+        "body": json.dumps({
+            "timestamp": datetime.now().isoformat(),
+            "total_clients": len(results),
+            "non_compliant": len([r for r in results if r["status"] == "FAIL"]),
+            "results": results
+        })
+    }
 
 
 def lambda_handler(event, context):
@@ -465,6 +456,8 @@ def lambda_handler(event, context):
             return handle_dashboard_data(body)
         elif path == "/revenue":
             return handle_revenue_opportunities(body)
+        elif path == "/compliance":
+            return handle_compliance_check(body)
         else:
             return handle_portfolio_chat(body)
     except Exception as e:
