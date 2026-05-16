@@ -167,6 +167,21 @@ def api_revenue(req: RevenueRequest, username: str = Depends(verify_credentials)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/compliance")
+def api_compliance(req: dict, username: str = Depends(verify_credentials)):
+    try:
+        response = requests.post(
+            f"{API_BASE}/compliance",
+            headers=HEADERS,
+            json=req,
+            timeout=30
+        )
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        return response.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/dashboard")
 def api_dashboard(username: str = Depends(verify_credentials)):
     try:
