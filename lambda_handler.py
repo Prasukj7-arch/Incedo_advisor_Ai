@@ -415,6 +415,30 @@ def handle_revenue_opportunities(body: dict) -> dict:
     return feature10_revenue.handle_revenue_opportunities(body, PORTFOLIO_DATA, CLIENT_DATA, call_llama, save_metrics, CORS_HEADERS)
 
 
+def handle_compliance_check(body: dict) -> dict:
+    """Restored Feature 4: Full-book compliance monitoring."""
+    results = []
+    for client in PORTFOLIO_DATA["clients"]:
+        status, flags = check_compliance(client)
+        results.append({
+            "client": client["name"],
+            "status": status,
+            "flags": flags,
+            "aum": client["aum"]
+        })
+    
+    return {
+        "statusCode": 200,
+        "headers": CORS_HEADERS,
+        "body": json.dumps({
+            "timestamp": datetime.now().isoformat(),
+            "total_clients": len(results),
+            "non_compliant": len([r for r in results if r["status"] == "FAIL"]),
+            "results": results
+        })
+    }
+
+
 def lambda_handler(event, context):
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS_HEADERS, "body": ""}
@@ -432,6 +456,8 @@ def lambda_handler(event, context):
             return handle_dashboard_data(body)
         elif path == "/revenue":
             return handle_revenue_opportunities(body)
+        elif path == "/compliance":
+            return handle_compliance_check(body)
         else:
             return handle_portfolio_chat(body)
     except Exception as e:
