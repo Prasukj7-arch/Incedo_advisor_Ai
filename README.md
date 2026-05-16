@@ -200,7 +200,46 @@ The most enterprise-grade feature. When the AI generates a recommendation that t
 
 ---
 
-## Architecture
+### Feature 8 — Portfolio Scenario Simulator
+**Problem statement reference:** Section 4.3 (Scenario Simulations)
+
+Advisors can run "What-If" analysis on any client portfolio by typing a natural language scenario. The AI engine calculates the hypothetical new allocation, estimates the impact on returns and risk, and shows a side-by-side comparison.
+
+**Example scenarios:**
+- "What if we move 20% from Equity to Fixed Income?"
+- "Simulate a 10% market drop on Rahul's portfolio"
+- "What if we increase Cash allocation to 15%?"
+
+**Output includes:**
+- Current vs. Simulated allocation (Equity, Fixed Income, Cash, Alternatives)
+- Estimated Annual Return (before vs. after)
+- Risk Level change (Low / Medium / High)
+- AI rationale for the changes
+- Compliance status of the simulated portfolio (PASS / WARNING / FAIL)
+
+**AWS services:** Lambda, API Gateway, Bedrock (Llama 3.1)
+
+---
+
+### Feature 9 — Executive Dashboard (Advisor Command Center)
+**Problem statement reference:** Section 12 (KPIs — Advisor Productivity)
+
+The default home screen of the application. Aggregates data from all features into a single proactive view. The AI surfaces insights before the advisor asks anything.
+
+**KPI cards shown on load:**
+- Total Book AUM ($3.4M)
+- Avg. YTD Return (13.7%)
+- Compliance Health (live flag count)
+- Active Clients (3)
+
+**AI Proactive Recommendations:** Llama 3.1 scans the entire book and generates 3 daily insights (e.g., rebalancing needs, risk concentrations, client engagement triggers).
+
+**Audit Feed:** A timeline of recent system activity (compliance checks, research indexing, session events).
+
+**AWS services:** Lambda, API Gateway, Bedrock (Llama 3.1), DynamoDB
+
+---
+
 
 ```
 Evaluator / Advisor Browser
@@ -230,6 +269,12 @@ FastAPI Server (fast_app.py) ← HTTP Basic Auth
         |                                        Supervision Queue (if flagged)
         |
         ├── /api/compliance ─────────→ Local Rule Engine → CloudWatch Logs
+        |
+        ├── /api/simulate ────────────→ API Gateway → Lambda → Bedrock (scenario engine)
+        |
+        ├── /api/dashboard ───────────→ API Gateway → Lambda → Bedrock (proactive insights)
+        |                                                  ↕
+        |                                           DynamoDB (book aggregation)
         |
         ├── /api/observability ───────→ DynamoDB scan → advisor-ai-metrics
         |
@@ -580,6 +625,19 @@ Body: {"review_id": "REV-xxx", "action": "APPROVE", "notes": "Supervisor notes h
 Response: {"status": "success", "review_id": "REV-xxx"}
 ```
 
+### Scenario Simulator
+```
+POST /api/simulate
+Body: {"client_name": "Rahul", "scenario": "Move 20% from Equity to Fixed Income"}
+Response: {"current": {...}, "simulated": {...}, "analysis": "...", "compliance_status": "PASS"}
+```
+
+### Executive Dashboard
+```
+GET /api/dashboard
+Response: {"total_aum": "$3.4M", "avg_return": "13.7%", "client_count": 3, "insights": [...]}
+```
+
 ### System Status
 ```
 GET /api/status
@@ -599,6 +657,8 @@ Response: {"api_gateway": "active", "ec2_rag": "active", "bedrock": "active"}
 | `AdvisorAI_Feature5_Documentation.md` | Bedrock telemetry, DynamoDB metrics table, observability dashboard |
 | `AdvisorAI_Feature6_Documentation.md` | Web Speech API, voice-to-text, text-to-voice, Auto-Speak toggle |
 | `AdvisorAI_Feature7_Documentation.md` | HITL workflow, supervision DynamoDB table, approve/override audit |
+| `AdvisorAI_Feature8_Documentation.md` | Scenario simulator, What-If engine, side-by-side comparison, compliance check |
+| `AdvisorAI_Feature9_Documentation.md` | Executive dashboard, KPI cards, proactive AI insights, audit feed |
 
 ---
 
@@ -614,6 +674,8 @@ From Section 12 of the problem statement:
 | User adoption and engagement | Professional glassmorphism UI with voice, dark mode, and real-time status indicators |
 | AUM / revenue per advisor | Cross-sell opportunities surfaced in every Client 360 brief |
 | AI model performance tracking | Full observability console with cost, token, and latency metrics per feature |
+| Portfolio scenario planning | Scenario Simulator allows instant what-if analysis before any client meeting |
+| Proactive advisor intelligence | Executive Dashboard surfaces risks and opportunities before the advisor asks |
 
 ---
 

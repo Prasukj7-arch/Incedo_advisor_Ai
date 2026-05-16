@@ -70,6 +70,10 @@ class ClientRequest(BaseModel):
 class ComplianceRequest(BaseModel):
     client_filter: Optional[str] = None
 
+class SimulateRequest(BaseModel):
+    client_name: str
+    scenario: str
+
 class SupervisionActionRequest(BaseModel):
     review_id: str
     action: str  # 'APPROVE' or 'OVERRIDE'
@@ -128,11 +132,33 @@ def api_client360(req: ClientRequest, username: str = Depends(verify_credentials
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/compliance")
-def api_compliance(req: ComplianceRequest, username: str = Depends(verify_credentials)):
+@app.post("/api/simulate")
+def api_simulate(req: SimulateRequest, username: str = Depends(verify_credentials)):
     try:
-        result = run_compliance_check(req.client_filter)
-        return result
+        response = requests.post(
+            f"{API_BASE}/simulate",
+            headers=HEADERS,
+            json={"client_name": req.client_name, "scenario": req.scenario},
+            timeout=45
+        )
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        return response.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/dashboard")
+def api_dashboard(username: str = Depends(verify_credentials)):
+    try:
+        response = requests.post(
+            f"{API_BASE}/dashboard",
+            headers=HEADERS,
+            json={},
+            timeout=30
+        )
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        return response.json()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
