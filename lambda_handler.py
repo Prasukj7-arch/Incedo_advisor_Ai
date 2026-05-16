@@ -417,14 +417,21 @@ def handle_revenue_opportunities(body: dict) -> dict:
 
 def handle_compliance_check(body: dict) -> dict:
     """Restored Feature 4: Full-book compliance monitoring using the dedicated module."""
-    client_filter = body.get("client_filter")
-    result = run_compliance_check(client_filter)
-    
-    return {
-        "statusCode": 200,
-        "headers": CORS_HEADERS,
-        "body": json.dumps(result)
-    }
+    try:
+        client_filter = body.get("client_filter")
+        result = run_compliance_check(client_filter)
+        
+        return {
+            "statusCode": 200,
+            "headers": CORS_HEADERS,
+            "body": json.dumps(result)
+        }
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "headers": CORS_HEADERS,
+            "body": json.dumps({"error": f"Compliance Engine Error: {str(e)}"})
+        }
 
 
 def lambda_handler(event, context):
