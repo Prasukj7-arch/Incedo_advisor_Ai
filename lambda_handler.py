@@ -3,6 +3,9 @@ import boto3
 from datetime import datetime
 from decimal import Decimal
 from feature4_compliance import check_compliance, log_audit_trail
+import feature8_simulator
+import feature9_dashboard
+import feature10_revenue
 
 MODEL_ID = "us.meta.llama3-1-8b-instruct-v1:0"
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
@@ -402,87 +405,10 @@ Generate a professional meeting preparation brief for {client['name']} with thes
 
 
 def handle_scenario_simulation(body: dict) -> dict:
-    client_name = body.get("client_name", "").strip()
-    scenario = body.get("scenario", "").strip()
-    
-    if not client_name or not scenario:
-        return {"statusCode": 400, "headers": CORS_HEADERS,
-                "body": json.dumps({"error": "client_name and scenario are required"})}
-                
-    client_portfolio = None
-    for c in PORTFOLIO_DATA["clients"]:
-        if client_name.lower() in c["name"].lower():
-            client_portfolio = c
-            break
-            
-    if not client_portfolio:
-        return {"statusCode": 404, "headers": CORS_HEADERS,
-                "body": json.dumps({"error": f"Client '{client_name}' not found"})}
-
-    prompt = f"""You are a senior portfolio risk analyst. 
-Simulate the following scenario for {client_portfolio['name']}'s portfolio.
-
-CURRENT PORTFOLIO:
-{json.dumps(client_portfolio['portfolio'], indent=2)}
-
-REQUESTED SCENARIO:
-"{scenario}"
-
-TASK:
-1. Calculate the new weights (%) for Equity, Fixed Income, Cash, and Alternatives after the scenario is applied.
-2. Estimate the impact on 'Estimated Annual Return' and 'Risk Level' (Low, Medium, High).
-3. Provide a professional analysis of the changes.
-4. Format the output as a JSON object strictly following this structure:
-{{
-    "current": {{ "equity": {client_portfolio['portfolio']['equity']['allocation']}, "fixed_income": {client_portfolio['portfolio']['fixed_income']['allocation']}, "cash": {client_portfolio['portfolio']['cash']['allocation']}, "alternatives": {client_portfolio['portfolio']['alternatives']['allocation']}, "return": {client_portfolio['ytd_return']}, "risk": "{client_portfolio['risk_profile']}" }},
-    "simulated": {{ "equity": 0, "fixed_income": 0, "cash": 0, "alternatives": 0, "return": 0, "risk": "" }},
-    "analysis": "string rationale",
-    "compliance_status": "PASS/FAIL/WARNING",
-    "compliance_details": "string"
-}}
-
-JSON only. No other text."""
-
-    answer_json, metrics = call_llama("You are a financial simulation engine.", [{"role": "user", "content": prompt}])
-    save_metrics("scenario_simulation", metrics)
-    
-    try:
-        # Clean potential markdown wrapping from AI
-        clean_json = answer_json.replace('```json', '').replace('```', '').strip()
-        simulation_data = json.loads(clean_json)
-        return {
-            "statusCode": 200, "headers": CORS_HEADERS,
-            "body": json.dumps(simulation_data)
-        }
-    except Exception as e:
-        return {
-            "statusCode": 500, "headers": CORS_HEADERS,
-            "body": json.dumps({"error": f"Failed to parse simulation: {str(e)}", "raw": answer_json})
-        }
+    return feature8_simulator.handle_scenario_simulation(body, PORTFOLIO_DATA, call_llama, save_metrics, CORS_HEADERS)
 
 
 def handle_dashboard_data(body: dict) -> dict:
-    """Aggregates book-wide data and generates proactive AI insights."""
-    total_aum = sum(c["aum"] for c in PORTFOLIO_DATA["clients"])
-    avg_return = sum(c["ytd_return"] for c in PORTFOLIO_DATA["clients"]) / len(PORTFOLIO_DATA["clients"])
-    
-    # Generate Proactive Insights via AI
-    book_summary = "\n".join([
-        f"- {c['name']}: ${c['aum']:,} | YTD: {c['ytd_return']}% | Risk: {c['risk_profile']}"
-        for c in PORTFOLIO_DATA["clients"]
-    ])
-    
-    prompt = f"""You are a senior investment strategist.
-Analyze this advisor's book of business and provide 3 high-impact, proactive insights for today.
-
-BOOK SUMMARY:
-{book_summary}
-
-TASK:
-Identify rebalancing needs, risk concentrations, or client engagement opportunities.
-Format each insight as a JSON object inside an array:
-[
-  {{ "type": "warning/info/success", "text": "Short actionable insight", "client": "Name" }},
   ...
 ]
 
@@ -519,99 +445,7 @@ JSON only."""
 
 
 def handle_revenue_opportunities(body: dict) -> dict:
-    """Feature 10: Generates AI-ranked cross-sell/upsell revenue opportunities for a client."""
-    client_name = body.get("client_name", "").strip()
-    if not client_name:
-        return {"statusCode": 400, "headers": CORS_HEADERS,
-                "body": json.dumps({"error": "client_name is required"})}
-
-    # Find in both datasets
-    portfolio_client = None
-    crm_client = None
-    for c in PORTFOLIO_DATA["clients"]:
-        if client_name.lower() in c["name"].lower():
-            portfolio_client = c
-            break
-    for c in CLIENT_DATA["clients"]:
-        if client_name.lower() in c["name"].lower():
-            crm_client = c
-            break
-
-    if not portfolio_client or not crm_client:
-        return {"statusCode": 404, "headers": CORS_HEADERS,
-                "body": json.dumps({"error": f"Client '{client_name}' not found"})}
-
-    life_events = "\n".join([f"  - {e}" for e in crm_client["life_events"]])
-    goals = "\n".join([f"  - {g}" for g in crm_client["goals"]])
-    concerns = "\n".join([f"  - {c}" for c in crm_client["concerns"]])
-    existing_opps = "\n".join([f"  - {o}" for o in crm_client["cross_sell_opportunities"]])
-
-    prompt = f"""You are a senior financial advisor revenue strategist.
-Analyze this client and generate 4 ranked revenue opportunities.
-
-CLIENT PROFILE:
-- Name: {crm_client['name']} | Age: {crm_client['age']} | Risk: {crm_client['risk_profile']}
-- AUM: ${crm_client['aum']:,} | Since: {crm_client['since']}
-- Occupation: {crm_client['occupation']}
-
-LIFE EVENTS:
-{life_events}
-
-GOALS:
-{goals}
-
-CONCERNS:
-{concerns}
-
-CURRENT PORTFOLIO:
-- Equity: {portfolio_client['portfolio']['equity']['allocation']}%
-- Fixed Income: {portfolio_client['portfolio']['fixed_income']['allocation']}%
-- Cash: {portfolio_client['portfolio']['cash']['allocation']}%
-- YTD Return: {portfolio_client['ytd_return']}%
-
-EXISTING OPPORTUNITIES IDENTIFIED:
-{existing_opps}
-
-TASK:
-Generate 4 ranked cross-sell/upsell opportunities. For each:
-1. Recommend a specific financial product
-2. Assign priority: HIGH, MEDIUM, or LOW
-3. Estimate potential AUM/revenue impact
-4. Give a short personalized rationale tied to their life events or goals
-5. State if it is compliant with their risk profile
-
-Return ONLY a JSON array:
-[
-  {{
-    "product": "Product Name",
-    "priority": "HIGH",
-    "revenue_impact": "₹X lakh / year",
-    "rationale": "Personalized reason based on their situation",
-    "compliance": "SUITABLE"
-  }}
-]
-JSON only. No other text."""
-
-    answer_json, metrics = call_llama("You are a revenue strategy advisor.", [{"role": "user", "content": prompt}])
-    save_metrics("revenue_opportunities", metrics)
-
-    try:
-        clean_json = answer_json.replace('```json', '').replace('```', '').strip()
-        opportunities = json.loads(clean_json)
-        return {
-            "statusCode": 200, "headers": CORS_HEADERS,
-            "body": json.dumps({
-                "client_name": crm_client["name"],
-                "aum": crm_client["aum"],
-                "risk_profile": crm_client["risk_profile"],
-                "opportunities": opportunities
-            })
-        }
-    except Exception as e:
-        return {
-            "statusCode": 500, "headers": CORS_HEADERS,
-            "body": json.dumps({"error": f"Failed to parse opportunities: {str(e)}", "raw": answer_json})
-        }
+    return feature10_revenue.handle_revenue_opportunities(body, PORTFOLIO_DATA, CLIENT_DATA, call_llama, save_metrics, CORS_HEADERS)
 
 
 def lambda_handler(event, context):
