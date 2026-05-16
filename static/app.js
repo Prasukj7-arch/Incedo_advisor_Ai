@@ -20,7 +20,8 @@ const sectionData = {
     'feature-compliance': { title: 'Compliance Monitor', subtitle: 'Real-time compliance checks across all client portfolios with CloudWatch audit logging.' },
     'feature-observability': { title: 'AI Observability Console', subtitle: 'Real-time AWS Bedrock token usage, latency, and cost tracking.' },
     'feature-supervision': { title: 'Supervision Queue', subtitle: 'Human-in-the-loop review for high-risk AI recommendations.' },
-    'feature-simulator': { title: 'Portfolio Scenario Simulator', subtitle: 'Run what-if analysis on client portfolios to simulate market scenarios.' }
+    'feature-simulator': { title: 'Portfolio Scenario Simulator', subtitle: 'Run what-if analysis on client portfolios to simulate market scenarios.' },
+    'feature-revenue': { title: 'Revenue Enablement', subtitle: 'AI-ranked cross-sell and upsell opportunities personalised to each client.' }
 };
 
 navItems.forEach(item => {
@@ -821,4 +822,90 @@ function renderBar(label, value, colorClass) {
             </div>
         </div>
     `;
+}
+
+// -----------------------------------------------------------
+// FEATURE 10: Revenue Enablement
+// -----------------------------------------------------------
+async function generateRevenue() {
+    const clientName = document.getElementById('rev-client-select').value;
+    const btn = document.getElementById('rev-btn');
+    const results = document.getElementById('rev-results');
+    const empty = document.getElementById('rev-empty');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+
+    try {
+        const response = await fetch('/api/revenue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client_name: clientName })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        empty.classList.add('hidden');
+        results.classList.remove('hidden');
+        results.classList.add('flex');
+
+        // Render client header
+        const header = document.getElementById('rev-client-header');
+        header.innerHTML = `
+            <div class="w-14 h-14 rounded-2xl bg-green-600/20 text-green-400 flex items-center justify-center text-2xl font-bold">
+                ${data.client_name.charAt(0)}
+            </div>
+            <div class="flex-1">
+                <h3 class="text-xl font-bold text-white">${data.client_name}</h3>
+                <p class="text-sm text-gray-400">${data.risk_profile} Profile &nbsp;•&nbsp; AUM: $${(data.aum/1000000).toFixed(1)}M</p>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Opportunities Found</p>
+                <p class="text-3xl font-bold text-green-400">${data.opportunities.length}</p>
+            </div>
+        `;
+
+        // Render opportunity cards
+        const cards = document.getElementById('rev-cards');
+        cards.innerHTML = '';
+        data.opportunities.forEach((opp, idx) => {
+            const priorityColor = opp.priority === 'HIGH'
+                ? 'text-red-400 bg-red-500/10 border-red-500/30'
+                : opp.priority === 'MEDIUM'
+                ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                : 'text-blue-400 bg-blue-500/10 border-blue-500/30';
+
+            const complianceColor = (opp.compliance === 'SUITABLE' || opp.compliance === 'COMPLIANT')
+                ? 'text-green-400 bg-green-500/10 border-green-500/30'
+                : 'text-red-400 bg-red-500/10 border-red-500/30';
+
+            cards.innerHTML += `
+                <div class="glass p-6 rounded-2xl border border-gray-700/50 flex flex-col gap-4 hover:border-green-500/30 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Opportunity ${idx + 1}</p>
+                            <h4 class="text-lg font-bold text-white">${opp.product}</h4>
+                        </div>
+                        <span class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase border ${priorityColor} ml-3">${opp.priority}</span>
+                    </div>
+                    <p class="text-sm text-gray-300 leading-relaxed">${opp.rationale}</p>
+                    <div class="flex items-center justify-between pt-2 border-t border-gray-800">
+                        <div>
+                            <p class="text-[10px] text-gray-500 uppercase font-bold">Revenue Impact</p>
+                            <p class="text-green-400 font-bold text-sm">${opp.revenue_impact}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase border ${complianceColor}">${opp.compliance}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+    } catch (err) {
+        console.error('Revenue error:', err);
+        alert('Failed to generate opportunities. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-sack-dollar"></i> Generate Opportunities';
+    }
 }

@@ -518,6 +518,102 @@ JSON only."""
         }
 
 
+def handle_revenue_opportunities(body: dict) -> dict:
+    """Feature 10: Generates AI-ranked cross-sell/upsell revenue opportunities for a client."""
+    client_name = body.get("client_name", "").strip()
+    if not client_name:
+        return {"statusCode": 400, "headers": CORS_HEADERS,
+                "body": json.dumps({"error": "client_name is required"})}
+
+    # Find in both datasets
+    portfolio_client = None
+    crm_client = None
+    for c in PORTFOLIO_DATA["clients"]:
+        if client_name.lower() in c["name"].lower():
+            portfolio_client = c
+            break
+    for c in CLIENT_DATA["clients"]:
+        if client_name.lower() in c["name"].lower():
+            crm_client = c
+            break
+
+    if not portfolio_client or not crm_client:
+        return {"statusCode": 404, "headers": CORS_HEADERS,
+                "body": json.dumps({"error": f"Client '{client_name}' not found"})}
+
+    life_events = "\n".join([f"  - {e}" for e in crm_client["life_events"]])
+    goals = "\n".join([f"  - {g}" for g in crm_client["goals"]])
+    concerns = "\n".join([f"  - {c}" for c in crm_client["concerns"]])
+    existing_opps = "\n".join([f"  - {o}" for o in crm_client["cross_sell_opportunities"]])
+
+    prompt = f"""You are a senior financial advisor revenue strategist.
+Analyze this client and generate 4 ranked revenue opportunities.
+
+CLIENT PROFILE:
+- Name: {crm_client['name']} | Age: {crm_client['age']} | Risk: {crm_client['risk_profile']}
+- AUM: ${crm_client['aum']:,} | Since: {crm_client['since']}
+- Occupation: {crm_client['occupation']}
+
+LIFE EVENTS:
+{life_events}
+
+GOALS:
+{goals}
+
+CONCERNS:
+{concerns}
+
+CURRENT PORTFOLIO:
+- Equity: {portfolio_client['portfolio']['equity']['allocation']}%
+- Fixed Income: {portfolio_client['portfolio']['fixed_income']['allocation']}%
+- Cash: {portfolio_client['portfolio']['cash']['allocation']}%
+- YTD Return: {portfolio_client['ytd_return']}%
+
+EXISTING OPPORTUNITIES IDENTIFIED:
+{existing_opps}
+
+TASK:
+Generate 4 ranked cross-sell/upsell opportunities. For each:
+1. Recommend a specific financial product
+2. Assign priority: HIGH, MEDIUM, or LOW
+3. Estimate potential AUM/revenue impact
+4. Give a short personalized rationale tied to their life events or goals
+5. State if it is compliant with their risk profile
+
+Return ONLY a JSON array:
+[
+  {{
+    "product": "Product Name",
+    "priority": "HIGH",
+    "revenue_impact": "₹X lakh / year",
+    "rationale": "Personalized reason based on their situation",
+    "compliance": "SUITABLE"
+  }}
+]
+JSON only. No other text."""
+
+    answer_json, metrics = call_llama("You are a revenue strategy advisor.", [{"role": "user", "content": prompt}])
+    save_metrics("revenue_opportunities", metrics)
+
+    try:
+        clean_json = answer_json.replace('```json', '').replace('```', '').strip()
+        opportunities = json.loads(clean_json)
+        return {
+            "statusCode": 200, "headers": CORS_HEADERS,
+            "body": json.dumps({
+                "client_name": crm_client["name"],
+                "aum": crm_client["aum"],
+                "risk_profile": crm_client["risk_profile"],
+                "opportunities": opportunities
+            })
+        }
+    except Exception as e:
+        return {
+            "statusCode": 500, "headers": CORS_HEADERS,
+            "body": json.dumps({"error": f"Failed to parse opportunities: {str(e)}", "raw": answer_json})
+        }
+
+
 def lambda_handler(event, context):
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS_HEADERS, "body": ""}
@@ -533,6 +629,8 @@ def lambda_handler(event, context):
             return handle_scenario_simulation(body)
         elif path == "/dashboard":
             return handle_dashboard_data(body)
+        elif path == "/revenue":
+            return handle_revenue_opportunities(body)
         else:
             return handle_portfolio_chat(body)
     except Exception as e:

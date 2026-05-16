@@ -60,6 +60,10 @@
                             <i class="fa-solid fa-shield-halved w-5 text-center"></i>
                             <span>Compliance Monitor</span>
                         </button>
+                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-revenue">
+                            <i class="fa-solid fa-sack-dollar w-5 text-center"></i>
+                            <span>Revenue Enablement</span>
+                        </button>
                         <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-simulator">
                             <i class="fa-solid fa-flask w-5 text-center"></i>
                             <span>Portfolio Simulator</span>
@@ -677,6 +681,45 @@
                     <i class="fa-solid fa-flask-vial text-6xl mb-4 text-gray-600"></i>
                     <h3 class="text-xl font-bold text-gray-400">Ready to simulate?</h3>
                     <p class="text-sm text-gray-500">Describe a market shift or allocation change to see the impact.</p>
+                </div>
+            </section>
+
+            <!-- FEATURE 10: Revenue Enablement -->
+            <section id="feature-revenue" class="feature-section h-full flex flex-col max-w-6xl mx-auto">
+                <!-- Input Panel -->
+                <div class="glass p-6 rounded-2xl mb-8">
+                    <div class="flex items-end gap-4">
+                        <div class="flex-1">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Select Client</label>
+                            <select id="rev-client-select" class="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-green-500 appearance-none">
+                                <option value="Priya Sharma">Priya Sharma</option>
+                                <option value="Rahul Mehta">Rahul Mehta</option>
+                                <option value="Anita Desai">Anita Desai</option>
+                            </select>
+                        </div>
+                        <button onclick="generateRevenue()" id="rev-btn" class="btn-primary h-[50px] px-8 rounded-xl font-bold flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500">
+                            <i class="fa-solid fa-sack-dollar"></i> Generate Opportunities
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="rev-results" class="hidden flex-col gap-6 flex-1">
+                    <!-- Client Summary -->
+                    <div id="rev-client-header" class="glass p-5 rounded-2xl flex items-center gap-6">
+                        <!-- Injected by JS -->
+                    </div>
+                    <!-- Opportunity Cards Grid -->
+                    <div id="rev-cards" class="grid grid-cols-2 gap-6">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="rev-empty" class="flex-1 flex flex-col items-center justify-center text-center opacity-50">
+                    <i class="fa-solid fa-sack-dollar text-6xl mb-4 text-gray-600"></i>
+                    <h3 class="text-xl font-bold text-gray-400">Ready to find revenue?</h3>
+                    <p class="text-sm text-gray-500">Select a client and generate AI-ranked cross-sell opportunities.</p>
                 </div>
             </section>
         </div>
