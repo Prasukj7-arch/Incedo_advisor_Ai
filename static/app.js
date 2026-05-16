@@ -13,12 +13,14 @@ const headerTitle = document.getElementById('header-title');
 const headerSubtitle = document.getElementById('header-subtitle');
 
 const sectionData = {
+    'feature-dashboard': { title: 'Executive Dashboard', subtitle: 'Overview of your book of business, AI insights, and compliance health.' },
     'feature-chat': { title: 'Portfolio Chat', subtitle: 'Ask anything about your client portfolios in natural language.' },
     'feature-rag': { title: 'Research Search', subtitle: 'Search across 5 financial research reports using natural language.' },
     'feature-client360': { title: 'Client 360 — Meeting Prep', subtitle: 'Generate a complete meeting preparation brief for any client instantly.' },
     'feature-compliance': { title: 'Compliance Monitor', subtitle: 'Real-time compliance checks across all client portfolios with CloudWatch audit logging.' },
     'feature-observability': { title: 'AI Observability Console', subtitle: 'Real-time AWS Bedrock token usage, latency, and cost tracking.' },
-    'feature-supervision': { title: 'Supervision Queue', subtitle: 'Human-in-the-loop review for high-risk AI recommendations.' }
+    'feature-supervision': { title: 'Supervision Queue', subtitle: 'Human-in-the-loop review for high-risk AI recommendations.' },
+    'feature-simulator': { title: 'Portfolio Scenario Simulator', subtitle: 'Run what-if analysis on client portfolios to simulate market scenarios.' }
 };
 
 navItems.forEach(item => {
@@ -476,9 +478,53 @@ async function checkSystemStatus() {
     }
 }
 
+// -----------------------------------------------------------
+// FEATURE 9: Executive Dashboard
+// -----------------------------------------------------------
+async function loadDashboard() {
+    const insightsContainer = document.getElementById('dash-insights');
+    const complianceCount = document.getElementById('dash-compliance-count');
+    
+    try {
+        const response = await fetch('/api/dashboard');
+        const data = await response.json();
+        
+        // Render Insights
+        if (data.insights && data.insights.length > 0) {
+            insightsContainer.innerHTML = '';
+            data.insights.forEach(insight => {
+                const icon = insight.type === 'warning' ? 'fa-triangle-exclamation' : (insight.type === 'success' ? 'fa-circle-check' : 'fa-circle-info');
+                const color = insight.type === 'warning' ? 'text-amber-400' : (insight.type === 'success' ? 'text-green-400' : 'text-blue-400');
+                const bg = insight.type === 'warning' ? 'bg-amber-500/10' : (insight.type === 'success' ? 'bg-green-500/10' : 'bg-blue-500/10');
+                const border = insight.type === 'warning' ? 'border-amber-500/20' : (insight.type === 'success' ? 'border-green-500/20' : 'border-blue-500/20');
+                
+                insightsContainer.innerHTML += `
+                    <div class="glass p-5 rounded-2xl flex items-start gap-4 transition-all hover:scale-[1.01] ${bg} ${border} border">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${bg}">
+                            <i class="fa-solid ${icon} ${color}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold uppercase tracking-widest ${color}">${insight.client}</span>
+                                <span class="text-[8px] bg-white/5 px-1.5 py-0.5 rounded text-gray-500 uppercase">AI Insight</span>
+                            </div>
+                            <p class="text-sm text-gray-200">${insight.text}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    } catch (err) {
+        console.error("Dashboard error:", err);
+        insightsContainer.innerHTML = '<p class="text-gray-500 text-sm">Failed to load proactive insights.</p>';
+    }
+}
+
 // Check status on load and every 30 seconds
 checkSystemStatus();
+loadDashboard();
 setInterval(checkSystemStatus, 30000);
+setInterval(loadDashboard, 300000); // Refresh dashboard every 5 mins
 
 // -----------------------------------------------------------
 // FEATURE 5: AI Observability
@@ -682,3 +728,97 @@ async function submitSupervisionAction(reviewId, action) {
 // Initial check for supervision queue
 loadSupervisionQueue();
 setInterval(loadSupervisionQueue, 60000); // Check every minute
+// -----------------------------------------------------------
+// FEATURE 8: Portfolio Scenario Simulator
+// -----------------------------------------------------------
+async function runSimulation() {
+    const clientName = document.getElementById('sim-client-select').value;
+    const scenario = document.getElementById('sim-scenario-input').value;
+    const btn = document.getElementById('sim-btn');
+    const results = document.getElementById('sim-results');
+    const empty = document.getElementById('sim-empty');
+    
+    if (!scenario) {
+        alert("Please describe a scenario.");
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Simulating...';
+    
+    try {
+        const response = await fetch('/api/simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client_name: clientName, scenario: scenario })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) throw new Error(data.error);
+        
+        empty.classList.add('hidden');
+        results.classList.remove('hidden');
+        
+        // Render stats
+        renderSimStats('sim-current-stats', data.current);
+        renderSimStats('sim-new-stats', data.simulated);
+        
+        // Render Analysis
+        document.getElementById('sim-analysis-text').innerText = data.analysis;
+        
+        // Render Compliance Badge
+        const badge = document.getElementById('sim-compliance-badge');
+        badge.innerText = `Compliance: ${data.compliance_status}`;
+        if (data.compliance_status === 'PASS') {
+            badge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-green-500/20 text-green-400 border border-green-500/30';
+        } else if (data.compliance_status === 'FAIL') {
+            badge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30';
+        } else {
+            badge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 border border-amber-500/30';
+        }
+        
+    } catch (err) {
+        console.error("Simulation error:", err);
+        alert("Failed to run simulation. Please try again.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> Run Simulation';
+    }
+}
+
+function renderSimStats(containerId, stats) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = `
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-black/20 p-3 rounded-xl border border-gray-800">
+                <span class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Return</span>
+                <span class="text-xl font-bold text-white">${stats.return}%</span>
+            </div>
+            <div class="bg-black/20 p-3 rounded-xl border border-gray-800">
+                <span class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Risk</span>
+                <span class="text-xl font-bold ${stats.risk === 'High' ? 'text-red-400' : 'text-green-400'}">${stats.risk}</span>
+            </div>
+        </div>
+        <div class="space-y-3 mt-4">
+            ${renderBar('Equity', stats.equity, 'bg-blue-500')}
+            ${renderBar('Fixed Income', stats.fixed_income, 'bg-green-500')}
+            ${renderBar('Cash', stats.cash, 'bg-gray-500')}
+            ${renderBar('Alternatives', stats.alternatives, 'bg-purple-500')}
+        </div>
+    `;
+}
+
+function renderBar(label, value, colorClass) {
+    return `
+        <div>
+            <div class="flex justify-between text-[11px] mb-1">
+                <span class="text-gray-400">${label}</span>
+                <span class="text-white font-bold">${value}%</span>
+            </div>
+            <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                <div class="${colorClass} h-full" style="width: ${value}%"></div>
+            </div>
+        </div>
+    `;
+}

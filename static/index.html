@@ -40,7 +40,11 @@
                 <div>
                     <h3 class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Advisor Tools</h3>
                     <div class="space-y-1">
-                        <button class="nav-item active w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-chat">
+                        <button class="nav-item active w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-dashboard">
+                            <i class="fa-solid fa-house-laptop w-5 text-center"></i>
+                            <span>Executive Dashboard</span>
+                        </button>
+                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-chat">
                             <i class="fa-solid fa-chart-pie w-5 text-center"></i>
                             <span>Portfolio Chat</span>
                         </button>
@@ -55,6 +59,10 @@
                         <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-compliance">
                             <i class="fa-solid fa-shield-halved w-5 text-center"></i>
                             <span>Compliance Monitor</span>
+                        </button>
+                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-simulator">
+                            <i class="fa-solid fa-flask w-5 text-center"></i>
+                            <span>Portfolio Simulator</span>
                         </button>
                     </div>
                 </div>
@@ -149,8 +157,77 @@
 
         <div class="p-8 flex-1">
             
+            <!-- FEATURE 9: Executive Dashboard (HOME) -->
+            <section id="feature-dashboard" class="feature-section active h-full flex flex-col max-w-6xl mx-auto">
+                <!-- Summary Stats -->
+                <div class="grid grid-cols-4 gap-6 mb-8">
+                    <div class="glass p-6 rounded-2xl border-t-4 border-blue-500">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Book AUM</p>
+                        <h3 class="text-2xl font-bold text-white">$3.4M</h3>
+                        <p class="text-xs text-green-400 mt-2"><i class="fa-solid fa-arrow-up"></i> 1.2% this month</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-t-4 border-green-500">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Avg. YTD Return</p>
+                        <h3 class="text-2xl font-bold text-white">13.7%</h3>
+                        <p class="text-xs text-gray-500 mt-2">v/s 11.2% Benchmark</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-t-4 border-red-500">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Compliance Health</p>
+                        <h3 class="text-2xl font-bold text-white" id="dash-compliance-count">0 Flags</h3>
+                        <p class="text-xs text-red-400 mt-2"><i class="fa-solid fa-circle-exclamation"></i> Immediate action needed</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-t-4 border-purple-500">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Clients</p>
+                        <h3 class="text-2xl font-bold text-white">3</h3>
+                        <p class="text-xs text-gray-500 mt-2">All sectors covered</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-8 flex-1">
+                    <!-- PROACTIVE INSIGHTS -->
+                    <div class="col-span-2 flex flex-col gap-6">
+                        <div class="glass p-8 rounded-3xl flex-1 bg-gradient-to-br from-blue-600/10 to-purple-600/5 border-blue-500/20">
+                            <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
+                                <i class="fa-solid fa-brain text-blue-400"></i> AI Proactive Recommendations
+                            </h3>
+                            <div class="space-y-4" id="dash-insights">
+                                <!-- Loading State -->
+                                <div class="animate-pulse flex flex-col gap-4">
+                                    <div class="h-16 bg-white/5 rounded-2xl"></div>
+                                    <div class="h-16 bg-white/5 rounded-2xl"></div>
+                                    <div class="h-16 bg-white/5 rounded-2xl"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RECENT ACTIVITY -->
+                    <div class="glass p-8 rounded-3xl">
+                        <h3 class="text-lg font-bold mb-6 flex items-center gap-3">
+                            <i class="fa-solid fa-list-check text-gray-400"></i> Audit Feed
+                        </h3>
+                        <div class="space-y-6" id="dash-audit-feed">
+                            <div class="flex gap-4 items-start pb-4 border-b border-gray-800">
+                                <div class="w-2 h-2 rounded-full bg-blue-500 mt-1.5"></div>
+                                <div>
+                                    <p class="text-xs text-gray-200">New Research indexed for <strong>Indian Banking</strong></p>
+                                    <p class="text-[10px] text-gray-500 uppercase mt-1">2 hours ago</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4 items-start pb-4 border-b border-gray-800">
+                                <div class="w-2 h-2 rounded-full bg-green-500 mt-1.5"></div>
+                                <div>
+                                    <p class="text-xs text-gray-200">Compliance check passed for <strong>Priya Sharma</strong></p>
+                                    <p class="text-[10px] text-gray-500 uppercase mt-1">5 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- FEATURE 1: Portfolio Chat -->
-            <section id="feature-chat" class="feature-section active h-full flex flex-col max-w-5xl mx-auto">
+            <section id="feature-chat" class="feature-section h-full flex flex-col max-w-5xl mx-auto">
                 
                 <div class="grid grid-cols-3 gap-4 mb-6">
                     <button class="btn-secondary rounded-xl p-4 text-left flex flex-col gap-2 hover:border-blue-500/50 transition-all group" onclick="fillChat('Summarize my entire book performance today')">
@@ -540,6 +617,68 @@
                 </div>
             </section>
             
+            <!-- FEATURE 8: Portfolio Simulator -->
+            <section id="feature-simulator" class="feature-section h-full flex flex-col max-w-6xl mx-auto">
+                <div class="glass p-6 rounded-2xl mb-8 flex flex-col gap-4">
+                    <div class="flex items-end gap-4">
+                        <div class="flex-1">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Select Client</label>
+                            <select id="sim-client-select" class="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 appearance-none">
+                                <option value="Priya Sharma">Priya Sharma</option>
+                                <option value="Rahul Mehta">Rahul Mehta</option>
+                                <option value="Anita Desai">Anita Desai</option>
+                            </select>
+                        </div>
+                        <div class="flex-[3]">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Describe Scenario (What-If?)</label>
+                            <input type="text" id="sim-scenario-input" placeholder="e.g., Move 20% from Equity to Fixed Income and increase Cash by 5%" class="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500">
+                        </div>
+                        <button onclick="runSimulation()" id="sim-btn" class="btn-primary h-[50px] px-8 rounded-xl font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-play"></i> Run Simulation
+                        </button>
+                    </div>
+                </div>
+
+                <div id="sim-results" class="hidden">
+                    <div class="grid grid-cols-2 gap-8 mb-8">
+                        <!-- Current Portfolio -->
+                        <div class="glass p-6 rounded-2xl border-l-4 border-gray-500">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-gray-400"></i> Current Allocation
+                            </h3>
+                            <div class="space-y-4" id="sim-current-stats">
+                                <!-- Dynamic Content -->
+                            </div>
+                        </div>
+
+                        <!-- Simulated Portfolio -->
+                        <div class="glass p-6 rounded-2xl border-l-4 border-blue-500">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-blue-400">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Simulated Allocation
+                            </h3>
+                            <div class="space-y-4" id="sim-new-stats">
+                                <!-- Dynamic Content -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 rounded-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass-chart text-blue-400"></i> AI Impact Analysis
+                            </h3>
+                            <div id="sim-compliance-badge" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase"></div>
+                        </div>
+                        <p id="sim-analysis-text" class="text-gray-300 leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <div id="sim-empty" class="flex-1 flex flex-col items-center justify-center text-center opacity-50">
+                    <i class="fa-solid fa-flask-vial text-6xl mb-4 text-gray-600"></i>
+                    <h3 class="text-xl font-bold text-gray-400">Ready to simulate?</h3>
+                    <p class="text-sm text-gray-500">Describe a market shift or allocation change to see the impact.</p>
+                </div>
+            </section>
         </div>
     </main>
 

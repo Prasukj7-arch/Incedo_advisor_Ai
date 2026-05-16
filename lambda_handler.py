@@ -401,6 +401,123 @@ Generate a professional meeting preparation brief for {client['name']} with thes
     }
 
 
+def handle_scenario_simulation(body: dict) -> dict:
+    client_name = body.get("client_name", "").strip()
+    scenario = body.get("scenario", "").strip()
+    
+    if not client_name or not scenario:
+        return {"statusCode": 400, "headers": CORS_HEADERS,
+                "body": json.dumps({"error": "client_name and scenario are required"})}
+                
+    client_portfolio = None
+    for c in PORTFOLIO_DATA["clients"]:
+        if client_name.lower() in c["name"].lower():
+            client_portfolio = c
+            break
+            
+    if not client_portfolio:
+        return {"statusCode": 404, "headers": CORS_HEADERS,
+                "body": json.dumps({"error": f"Client '{client_name}' not found"})}
+
+    prompt = f"""You are a senior portfolio risk analyst. 
+Simulate the following scenario for {client_portfolio['name']}'s portfolio.
+
+CURRENT PORTFOLIO:
+{json.dumps(client_portfolio['portfolio'], indent=2)}
+
+REQUESTED SCENARIO:
+"{scenario}"
+
+TASK:
+1. Calculate the new weights (%) for Equity, Fixed Income, Cash, and Alternatives after the scenario is applied.
+2. Estimate the impact on 'Estimated Annual Return' and 'Risk Level' (Low, Medium, High).
+3. Provide a professional analysis of the changes.
+4. Format the output as a JSON object strictly following this structure:
+{{
+    "current": {{ "equity": {client_portfolio['portfolio']['equity']['allocation']}, "fixed_income": {client_portfolio['portfolio']['fixed_income']['allocation']}, "cash": {client_portfolio['portfolio']['cash']['allocation']}, "alternatives": {client_portfolio['portfolio']['alternatives']['allocation']}, "return": {client_portfolio['ytd_return']}, "risk": "{client_portfolio['risk_profile']}" }},
+    "simulated": {{ "equity": 0, "fixed_income": 0, "cash": 0, "alternatives": 0, "return": 0, "risk": "" }},
+    "analysis": "string rationale",
+    "compliance_status": "PASS/FAIL/WARNING",
+    "compliance_details": "string"
+}}
+
+JSON only. No other text."""
+
+    answer_json, metrics = call_llama("You are a financial simulation engine.", [{"role": "user", "content": prompt}])
+    save_metrics("scenario_simulation", metrics)
+    
+    try:
+        # Clean potential markdown wrapping from AI
+        clean_json = answer_json.replace('```json', '').replace('```', '').strip()
+        simulation_data = json.loads(clean_json)
+        return {
+            "statusCode": 200, "headers": CORS_HEADERS,
+            "body": json.dumps(simulation_data)
+        }
+    except Exception as e:
+        return {
+            "statusCode": 500, "headers": CORS_HEADERS,
+            "body": json.dumps({"error": f"Failed to parse simulation: {str(e)}", "raw": answer_json})
+        }
+
+
+def handle_dashboard_data(body: dict) -> dict:
+    """Aggregates book-wide data and generates proactive AI insights."""
+    total_aum = sum(c["aum"] for c in PORTFOLIO_DATA["clients"])
+    avg_return = sum(c["ytd_return"] for c in PORTFOLIO_DATA["clients"]) / len(PORTFOLIO_DATA["clients"])
+    
+    # Generate Proactive Insights via AI
+    book_summary = "\n".join([
+        f"- {c['name']}: ${c['aum']:,} | YTD: {c['ytd_return']}% | Risk: {c['risk_profile']}"
+        for c in PORTFOLIO_DATA["clients"]
+    ])
+    
+    prompt = f"""You are a senior investment strategist.
+Analyze this advisor's book of business and provide 3 high-impact, proactive insights for today.
+
+BOOK SUMMARY:
+{book_summary}
+
+TASK:
+Identify rebalancing needs, risk concentrations, or client engagement opportunities.
+Format each insight as a JSON object inside an array:
+[
+  {{ "type": "warning/info/success", "text": "Short actionable insight", "client": "Name" }},
+  ...
+]
+
+JSON only."""
+
+    answer_json, metrics = call_llama("You are a proactive advisor concierge.", [{"role": "user", "content": prompt}])
+    save_metrics("dashboard_insights", metrics)
+    
+    try:
+        clean_json = answer_json.replace('```json', '').replace('```', '').strip()
+        insights = json.loads(clean_json)
+        return {
+            "statusCode": 200, "headers": CORS_HEADERS,
+            "body": json.dumps({
+                "total_aum": f"${total_aum/1000000:.1f}M",
+                "avg_return": f"{avg_return:.1f}%",
+                "client_count": len(PORTFOLIO_DATA["clients"]),
+                "insights": insights
+            })
+        }
+    except Exception as e:
+        return {
+            "statusCode": 200, "headers": CORS_HEADERS,
+            "body": json.dumps({
+                "total_aum": f"${total_aum/1000000:.1f}M",
+                "avg_return": f"{avg_return:.1f}%",
+                "client_count": len(PORTFOLIO_DATA["clients"]),
+                "insights": [
+                    {"type": "info", "text": "Review today's top research reports for market shifts.", "client": "All"},
+                    {"type": "warning", "text": "Check equity concentration in aggressive portfolios.", "client": "Rahul Mehta"}
+                ]
+            })
+        }
+
+
 def lambda_handler(event, context):
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS_HEADERS, "body": ""}
@@ -412,6 +529,10 @@ def lambda_handler(event, context):
         body = json.loads(event.get("body", "{}"))
         if path == "/client360":
             return handle_client360(body)
+        elif path == "/simulate":
+            return handle_scenario_simulation(body)
+        elif path == "/dashboard":
+            return handle_dashboard_data(body)
         else:
             return handle_portfolio_chat(body)
     except Exception as e:
