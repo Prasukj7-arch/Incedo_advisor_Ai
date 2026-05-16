@@ -240,7 +240,16 @@ The default home screen of the application. Aggregates data from all features in
 
 ---
 
+### Feature 10 — Revenue Enablement
+**Problem statement reference:** Section 4.6 (Revenue Enablement)
 
+A dedicated AI-powered tab that generates 4 ranked, personalized cross-sell and upsell product recommendations for each client. The AI draws from the client's real life events, financial goals, concerns, occupation, and portfolio to produce hyper-personalized advice.
+
+**AWS services:** Lambda, API Gateway, Bedrock (Llama 3.1), DynamoDB
+
+---
+
+## Architecture
 ```
 Evaluator / Advisor Browser
         |
@@ -275,6 +284,10 @@ FastAPI Server (fast_app.py) ← HTTP Basic Auth
         ├── /api/dashboard ───────────→ API Gateway → Lambda → Bedrock (proactive insights)
         |                                                  ↕
         |                                           DynamoDB (book aggregation)
+        |
+        ├── /api/revenue ────────────→ API Gateway → Lambda → Bedrock (cross-sell engine)
+        |                                                 ↕
+        |                                    CLIENT_DATA + PORTFOLIO_DATA (dual lookup)
         |
         ├── /api/observability ───────→ DynamoDB scan → advisor-ai-metrics
         |
@@ -638,6 +651,13 @@ GET /api/dashboard
 Response: {"total_aum": "$3.4M", "avg_return": "13.7%", "client_count": 3, "insights": [...]}
 ```
 
+### Revenue Enablement
+```
+POST /api/revenue
+Body: {"client_name": "Priya"}
+Response: {"client_name": "Priya Sharma", "aum": 800000, "risk_profile": "Moderate", "opportunities": [{"product": "...", "priority": "HIGH", "revenue_impact": "₹20 lakh / year", "rationale": "...", "compliance": "SUITABLE"}]}
+```
+
 ### System Status
 ```
 GET /api/status
@@ -659,6 +679,7 @@ Response: {"api_gateway": "active", "ec2_rag": "active", "bedrock": "active"}
 | `AdvisorAI_Feature7_Documentation.md` | HITL workflow, supervision DynamoDB table, approve/override audit |
 | `AdvisorAI_Feature8_Documentation.md` | Scenario simulator, What-If engine, side-by-side comparison, compliance check |
 | `AdvisorAI_Feature9_Documentation.md` | Executive dashboard, KPI cards, proactive AI insights, audit feed |
+| `AdvisorAI_Feature10_Documentation.md` | Revenue enablement, cross-sell engine, life-event personalization, 2×2 card UI |
 
 ---
 
@@ -676,6 +697,7 @@ From Section 12 of the problem statement:
 | AI model performance tracking | Full observability console with cost, token, and latency metrics per feature |
 | Portfolio scenario planning | Scenario Simulator allows instant what-if analysis before any client meeting |
 | Proactive advisor intelligence | Executive Dashboard surfaces risks and opportunities before the advisor asks |
+| Revenue per advisor | Revenue Enablement surfaces ₹ lakh-level cross-sell opportunities tied to real life events |
 
 ---
 
