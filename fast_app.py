@@ -74,6 +74,9 @@ class SimulateRequest(BaseModel):
     client_name: str
     scenario: str
 
+class RevenueRequest(BaseModel):
+    client_name: str
+
 class SupervisionActionRequest(BaseModel):
     review_id: str
     action: str  # 'APPROVE' or 'OVERRIDE'
@@ -144,6 +147,23 @@ def api_simulate(req: SimulateRequest, username: str = Depends(verify_credential
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=response.text)
         return response.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/revenue")
+def api_revenue(req: RevenueRequest, username: str = Depends(verify_credentials)):
+    try:
+        response = requests.post(
+            f"{API_BASE}/revenue",
+            headers=HEADERS,
+            json={"client_name": req.client_name},
+            timeout=45
+        )
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        return response.json()
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
