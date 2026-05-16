@@ -2,7 +2,7 @@ import json
 import boto3
 from datetime import datetime
 from decimal import Decimal
-from feature4_compliance import check_compliance, log_audit_trail
+from feature4_compliance import check_compliance, log_audit_trail, run_compliance_check
 import feature8_simulator
 import feature9_dashboard
 import feature10_revenue
@@ -416,26 +416,14 @@ def handle_revenue_opportunities(body: dict) -> dict:
 
 
 def handle_compliance_check(body: dict) -> dict:
-    """Restored Feature 4: Full-book compliance monitoring."""
-    results = []
-    for client in PORTFOLIO_DATA["clients"]:
-        status, flags = check_compliance(client)
-        results.append({
-            "client": client["name"],
-            "status": status,
-            "flags": flags,
-            "aum": client["aum"]
-        })
+    """Restored Feature 4: Full-book compliance monitoring using the dedicated module."""
+    client_filter = body.get("client_filter")
+    result = run_compliance_check(client_filter)
     
     return {
         "statusCode": 200,
         "headers": CORS_HEADERS,
-        "body": json.dumps({
-            "timestamp": datetime.now().isoformat(),
-            "total_clients": len(results),
-            "non_compliant": len([r for r in results if r["status"] == "FAIL"]),
-            "results": results
-        })
+        "body": json.dumps(result)
     }
 
 
