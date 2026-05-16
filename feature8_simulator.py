@@ -65,13 +65,24 @@ JSON only."""
         return {
             "statusCode": 200, "headers": cors_headers,
             "body": json.dumps({
-                "client_name": client["name"],
-                "current_data": {
+                "current": {
+                    "equity": current_allocation["equity"]["allocation"],
+                    "fixed_income": current_allocation["fixed_income"]["allocation"],
+                    "cash": current_allocation["cash"]["allocation"],
+                    "alternatives": current_allocation["alternatives"]["allocation"],
                     "return": current_return,
-                    "risk": current_risk,
-                    "allocation": current_allocation
+                    "risk": current_risk
                 },
-                "simulated_data": sim_results
+                "simulated": {
+                    "equity": sim_results["simulated_allocation"]["equity"],
+                    "fixed_income": sim_results["simulated_allocation"]["fixed_income"],
+                    "cash": sim_results["simulated_allocation"]["cash"],
+                    "alternatives": sim_results["simulated_allocation"]["alternatives"],
+                    "return": sim_results["simulated_return"],
+                    "risk": sim_results["simulated_risk"]
+                },
+                "analysis": sim_results["impact_analysis"],
+                "compliance_status": sim_results["compliance_status"]
             })
         }
     except Exception as e:
