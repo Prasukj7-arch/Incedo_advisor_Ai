@@ -409,40 +409,7 @@ def handle_scenario_simulation(body: dict) -> dict:
 
 
 def handle_dashboard_data(body: dict) -> dict:
-  ...
-]
-
-JSON only."""
-
-    answer_json, metrics = call_llama("You are a proactive advisor concierge.", [{"role": "user", "content": prompt}])
-    save_metrics("dashboard_insights", metrics)
-    
-    try:
-        clean_json = answer_json.replace('```json', '').replace('```', '').strip()
-        insights = json.loads(clean_json)
-        return {
-            "statusCode": 200, "headers": CORS_HEADERS,
-            "body": json.dumps({
-                "total_aum": f"${total_aum/1000000:.1f}M",
-                "avg_return": f"{avg_return:.1f}%",
-                "client_count": len(PORTFOLIO_DATA["clients"]),
-                "insights": insights
-            })
-        }
-    except Exception as e:
-        return {
-            "statusCode": 200, "headers": CORS_HEADERS,
-            "body": json.dumps({
-                "total_aum": f"${total_aum/1000000:.1f}M",
-                "avg_return": f"{avg_return:.1f}%",
-                "client_count": len(PORTFOLIO_DATA["clients"]),
-                "insights": [
-                    {"type": "info", "text": "Review today's top research reports for market shifts.", "client": "All"},
-                    {"type": "warning", "text": "Check equity concentration in aggressive portfolios.", "client": "Rahul Mehta"}
-                ]
-            })
-        }
-
+    return feature9_dashboard.handle_dashboard_data(body, PORTFOLIO_DATA, call_llama, save_metrics, CORS_HEADERS)
 
 def handle_revenue_opportunities(body: dict) -> dict:
     return feature10_revenue.handle_revenue_opportunities(body, PORTFOLIO_DATA, CLIENT_DATA, call_llama, save_metrics, CORS_HEADERS)
