@@ -2,6 +2,57 @@ import json
 import boto3
 from datetime import datetime, timezone
 
+# ── CloudWatch logger ──────────────────────────────────────────────────────────
+cloudwatch = boto3.client("logs", region_name="us-east-1")
+LOG_GROUP = "/advisor-ai/compliance"
+LOG_STREAM = "compliance-alerts"
+
+def log_to_cloudwatch(client_name: str, violations: list):
+    """Log compliance violations to CloudWatch for audit trail."""
+    try:
+        # Ensure log group exists
+        try:
+            cloudwatch.create_log_group(logGroupName=LOG_GROUP)
+        except Exception:
+            pass
+
+        # Ensure log stream exists
+        try:
+            cloudwatch.create_log_stream(
+                logGroupName=LOG_GROUP,
+                logStreamName=LOG_STREAM
+            )
+        except Exception:
+            pass
+
+        # Log the event
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "client": client_name,
+            "violations_count": len(violations),
+            "violations": [
+                {
+                    "rule_id": v["rule_id"],
+                    "rule_name": v["rule_name"],
+                    "severity": v["severity"]
+                }
+                for v in violations
+            ]
+        }
+
+        cloudwatch.put_log_events(
+            logGroupName=LOG_GROUP,
+            logStreamName=LOG_STREAM,
+            logEvents=[{
+                "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
+                "message": json.dumps(log_entry)
+            }]
+        )
+        return True
+    except Exception as e:
+        print(f"CloudWatch logging failed: {e}")
+        return False
+
 # ── Compliance Rules ───────────────────────────────────────────────────────────
 COMPLIANCE_RULES = [
     {
@@ -107,56 +158,6 @@ PORTFOLIO_DATA = {
   ]
 }
 
-# ── CloudWatch logger ──────────────────────────────────────────────────────────
-cloudwatch = boto3.client("logs", region_name="us-east-1")
-LOG_GROUP = "/advisor-ai/compliance"
-LOG_STREAM = "compliance-alerts"
-
-def log_to_cloudwatch(client_name: str, violations: list):
-    """Log compliance violations to CloudWatch for audit trail."""
-    try:
-        # Ensure log group exists
-        try:
-            cloudwatch.create_log_group(logGroupName=LOG_GROUP)
-        except Exception:
-            pass
-
-        # Ensure log stream exists
-        try:
-            cloudwatch.create_log_stream(
-                logGroupName=LOG_GROUP,
-                logStreamName=LOG_STREAM
-            )
-        except Exception:
-            pass
-
-        # Log the event
-        log_entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "client": client_name,
-            "violations_count": len(violations),
-            "violations": [
-                {
-                    "rule_id": v["rule_id"],
-                    "rule_name": v["rule_name"],
-                    "severity": v["severity"]
-                }
-                for v in violations
-            ]
-        }
-
-        cloudwatch.put_log_events(
-            logGroupName=LOG_GROUP,
-            logStreamName=LOG_STREAM,
-            logEvents=[{
-                "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
-                "message": json.dumps(log_entry)
-            }]
-        )
-        return True
-    except Exception as e:
-        print(f"CloudWatch logging failed: {e}")
-        return False
 
 
 def run_compliance_check(client_name: str = None) -> dict:
