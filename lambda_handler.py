@@ -448,7 +448,8 @@ def lambda_handler(event, context):
         if path == "/health":
             return {"statusCode": 200, "headers": CORS_HEADERS, "body": json.dumps({"status": "active"})}
             
-        body = json.loads(event.get("body", "{}"))
+        body_str = event.get("body") or "{}"
+        body = json.loads(body_str)
         if path == "/client360":
             return handle_client360(body)
         elif path == "/simulate":
