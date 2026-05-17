@@ -6,6 +6,19 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+// Helper to format UTC ISO timestamps into Indian Standard Time (IST)
+function formatTimestampIST(isoStr) {
+    if (!isoStr) return '';
+    try {
+        const dateObj = new Date(isoStr);
+        const datePart = dateObj.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+        const timePart = dateObj.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        return `${datePart} | ${timePart} (IST)`;
+    } catch (e) {
+        return isoStr.replace('T', ' ').substring(0, 19);
+    }
+}
+
 // Navigation Logic
 const navItems = document.querySelectorAll('.nav-item');
 const featureSections = document.querySelectorAll('.feature-section');
@@ -106,6 +119,17 @@ micBtn.addEventListener('click', () => {
     }
 });
 
+// Voice toggle change listener to instantly stop speaking if turned off
+if (voiceToggle) {
+    voiceToggle.addEventListener('change', () => {
+        if (!voiceToggle.checked && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+            const stopBtn = document.getElementById('stop-speech-btn');
+            if (stopBtn) stopBtn.classList.add('hidden');
+        }
+    });
+}
+
 // Text-to-Speech Helper
 function speakResponse(text) {
     if (!voiceToggle.checked || !window.speechSynthesis) return;
@@ -124,6 +148,13 @@ function speakResponse(text) {
     const voices = window.speechSynthesis.getVoices();
     const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
     if (preferredVoice) utterance.voice = preferredVoice;
+
+    const stopBtn = document.getElementById('stop-speech-btn');
+    if (stopBtn) {
+        utterance.onstart = () => stopBtn.classList.remove('hidden');
+        utterance.onend = () => stopBtn.classList.add('hidden');
+        utterance.onerror = () => stopBtn.classList.add('hidden');
+    }
 
     window.speechSynthesis.speak(utterance);
 }
@@ -358,7 +389,7 @@ async function runComplianceCheck(clientFilter = '') {
             document.getElementById('c-total').textContent = data.summary.total_clients_checked;
             document.getElementById('c-violations').textContent = data.summary.total_violations;
             document.getElementById('c-high').textContent = data.summary.high_severity_count;
-            document.getElementById('c-time').textContent = data.summary.checked_at.replace('T', ' ').substring(0, 16);
+            document.getElementById('c-time').textContent = formatTimestampIST(data.summary.checked_at);
             
             // Build Client Cards
             const list = document.getElementById('c-list');
@@ -479,42 +510,66 @@ async function checkSystemStatus() {
     }
 }
 
-// -----------------------------------------------------------
-// FEATURE 9: Executive Dashboard
-// -----------------------------------------------------------
+// Helper to render dashboard insights
+function renderDashboard(data) {
+    const insightsContainer = document.getElementById('dash-insights');
+    if (data.insights && data.insights.length > 0) {
+        insightsContainer.innerHTML = '';
+        data.insights.forEach(insight => {
+            const icon = insight.type === 'warning' ? 'fa-triangle-exclamation' : (insight.type === 'success' ? 'fa-circle-check' : 'fa-circle-info');
+            const color = insight.type === 'warning' ? 'text-amber-400' : (insight.type === 'success' ? 'text-green-400' : 'text-blue-400');
+            const bg = insight.type === 'warning' ? 'bg-amber-500/10' : (insight.type === 'success' ? 'bg-green-500/10' : 'bg-blue-500/10');
+            const border = insight.type === 'warning' ? 'border-amber-500/20' : (insight.type === 'success' ? 'border-green-500/20' : 'border-blue-500/20');
+            
+            insightsContainer.innerHTML += `
+                <div class="glass p-5 rounded-2xl flex items-start gap-4 transition-all hover:scale-[1.01] ${bg} ${border} border">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${bg}">
+                        <i class="fa-solid ${icon} ${color}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold uppercase tracking-widest ${color}">${insight.client}</span>
+                            <span class="text-[8px] bg-white/5 px-1.5 py-0.5 rounded text-gray-500 uppercase">AI Insight</span>
+                        </div>
+                        <p class="text-sm text-gray-200">${insight.text}</p>
+                    </div>
+                </div>
+            `;
+        });
+    }
+}
+
 async function loadDashboard() {
     const insightsContainer = document.getElementById('dash-insights');
-    const complianceCount = document.getElementById('dash-compliance-count');
+    
+    // Check localStorage cache (6 hours = 21,600,000 ms)
+    const cacheKey = 'dash_insights_cache';
+    const cacheDuration = 21600000;
+    const cachedData = localStorage.getItem(cacheKey);
+    
+    if (cachedData) {
+        try {
+            const cache = JSON.parse(cachedData);
+            if (Date.now() - cache.timestamp < cacheDuration) {
+                renderDashboard(cache.data);
+                return;
+            }
+        } catch (e) {
+            localStorage.removeItem(cacheKey);
+        }
+    }
     
     try {
         const response = await fetch('/api/dashboard');
         const data = await response.json();
         
-        // Render Insights
-        if (data.insights && data.insights.length > 0) {
-            insightsContainer.innerHTML = '';
-            data.insights.forEach(insight => {
-                const icon = insight.type === 'warning' ? 'fa-triangle-exclamation' : (insight.type === 'success' ? 'fa-circle-check' : 'fa-circle-info');
-                const color = insight.type === 'warning' ? 'text-amber-400' : (insight.type === 'success' ? 'text-green-400' : 'text-blue-400');
-                const bg = insight.type === 'warning' ? 'bg-amber-500/10' : (insight.type === 'success' ? 'bg-green-500/10' : 'bg-blue-500/10');
-                const border = insight.type === 'warning' ? 'border-amber-500/20' : (insight.type === 'success' ? 'border-green-500/20' : 'border-blue-500/20');
-                
-                insightsContainer.innerHTML += `
-                    <div class="glass p-5 rounded-2xl flex items-start gap-4 transition-all hover:scale-[1.01] ${bg} ${border} border">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${bg}">
-                            <i class="fa-solid ${icon} ${color}"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[10px] font-bold uppercase tracking-widest ${color}">${insight.client}</span>
-                                <span class="text-[8px] bg-white/5 px-1.5 py-0.5 rounded text-gray-500 uppercase">AI Insight</span>
-                            </div>
-                            <p class="text-sm text-gray-200">${insight.text}</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+        // Cache data with current timestamp
+        localStorage.setItem(cacheKey, JSON.stringify({
+            data: data,
+            timestamp: Date.now()
+        }));
+        
+        renderDashboard(data);
     } catch (err) {
         console.error("Dashboard error:", err);
         insightsContainer.innerHTML = '<p class="text-gray-500 text-sm">Failed to load proactive insights.</p>';
@@ -525,7 +580,7 @@ async function loadDashboard() {
 checkSystemStatus();
 loadDashboard();
 setInterval(checkSystemStatus, 30000);
-setInterval(loadDashboard, 300000); // Refresh dashboard every 5 mins
+setInterval(loadDashboard, 21600000); // Refresh dashboard every 6 hours (cost control)
 
 // -----------------------------------------------------------
 // FEATURE 5: AI Observability
@@ -603,7 +658,7 @@ async function loadObservability() {
                         <td class="py-2 pr-4 text-gray-300">${(call.tokens || 0).toLocaleString()}</td>
                         <td class="py-2 pr-4 text-amber-400">${call.latency_ms || 0}ms</td>
                         <td class="py-2 pr-4 text-green-400">$${parseFloat(call.cost_usd || 0).toFixed(6)}</td>
-                        <td class="py-2 text-gray-500 text-xs">${(call.timestamp || '').replace('T', ' ').substring(0, 19)}</td>
+                        <td class="py-2 text-gray-500 text-xs">${formatTimestampIST(call.timestamp)}</td>
                     </tr>
                 `;
             });
