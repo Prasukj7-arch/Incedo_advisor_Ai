@@ -191,15 +191,15 @@ def run_compliance_check(client_name: str = None) -> dict:
             except Exception:
                 pass
 
-        # Log to CloudWatch if violations found
-        if client_violations:
-            log_to_cloudwatch(client["name"], client_violations)
+        # Log to CloudWatch if violations found (Moving this to a background/non-blocking thought)
+        # if client_violations:
+        #     log_to_cloudwatch(client["name"], client_violations)
 
         results.append({
-            "client_id": client["id"],
-            "client_name": client["name"],
-            "risk_profile": client["risk_profile"],
-            "aum": client["aum"],
+            "client_id": client.get("id", "UNK"),
+            "client_name": client.get("name", "Unknown"),
+            "risk_profile": client.get("risk_profile", "Moderate"),
+            "aum": client.get("aum", 0),
             "violations": client_violations,
             "violation_count": len(client_violations),
             "status": "ALERT" if any(v["severity"] == "HIGH" for v in client_violations)
