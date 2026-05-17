@@ -421,10 +421,16 @@ def handle_compliance_check(body: dict) -> dict:
         client_filter = body.get("client_filter")
         result = run_compliance_check(client_filter)
         
+        # Safe decimal encoding
+        def decimal_default(obj):
+            if isinstance(obj, Decimal):
+                return float(obj)
+            raise TypeError
+
         return {
             "statusCode": 200,
             "headers": CORS_HEADERS,
-            "body": json.dumps(result)
+            "body": json.dumps(result, default=decimal_default)
         }
     except Exception as e:
         return {
