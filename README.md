@@ -252,6 +252,8 @@ A dedicated AI-powered tab that generates 4 ranked, personalized cross-sell and 
 ---
 
 ## Architecture
+
+![Architecture Diagram](./Architecture_Diagram.png)
 ```
 Evaluator / Advisor Browser
         |
