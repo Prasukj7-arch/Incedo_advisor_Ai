@@ -4,6 +4,7 @@ Run with: pytest tests/test_advisor_ai.py -v
 """
 
 import json
+# pyrefly: ignore [missing-import]
 import pytest
 from unittest.mock import patch, MagicMock
 from decimal import Decimal
