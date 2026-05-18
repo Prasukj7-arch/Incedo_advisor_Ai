@@ -10,7 +10,7 @@ Feature 4 implements two things in one:
 
 **Part A — Compliance Rule Engine:** A real-time compliance monitoring system that runs 6 automated rules across all client portfolios, flags violations by severity (HIGH/MEDIUM/LOW), and logs every alert to AWS CloudWatch for a full audit trail.
 
-**Part B — Streamlit Dashboard:** A unified web UI that connects all 4 features into a single professional interface that evaluators and advisors can interact with directly.
+**Part B — Non-Blocking Audit Trail:** Every violation is logged to AWS CloudWatch for a full audit trail. This is done via a non-blocking background thread to ensure zero latency impact on the critical path of generating recommendations.
 
 This directly addresses **Section 4.5** and **Section 5.5** of the problem statement:
 - Section 4.5: *"Pre-trade and post-trade compliance checks, Real-time alerts on policy violations, Explainable AI recommendations (audit-ready)"*
@@ -280,7 +280,7 @@ This provides the **audit-ready** output required by Section 5.5 of the problem 
 | RULE-004 KYC Refresh | ✅ DONE | Compliance flags detected |
 | RULE-005 Fixed Income | ✅ DONE | Conservative < 40% fixed income |
 | RULE-006 Day Loss | ✅ DONE | Equity day change < -3% |
-| CloudWatch logging | ✅ DONE | /advisor-ai/compliance group |
+| CloudWatch logging | ✅ DONE | Non-blocking background thread for zero latency |
 | CloudWatch permissions | ✅ DONE | CloudWatchFullAccess on Lambda role |
 | app.py Streamlit UI | ✅ DONE | 4 features, dark theme, professional |
 | Portfolio Chat tab | ✅ DONE | Quick buttons + chat input |
