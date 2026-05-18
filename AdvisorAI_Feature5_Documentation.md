@@ -74,8 +74,9 @@ A dedicated table `advisor-ai-metrics` was created to store every single invocat
 The UI was updated with a new "AI Observability" section that displays:
 - **Real-time Counters:** Total tokens used, total cost in USD/INR.
 - **Performance:** Average latency per call.
+- **Full History Aggregation:** Aggregates metrics from the *entire* database history (a previous `Limit=50` restriction was removed to fix a sliding-window bug, ensuring true historical accuracy).
 - **Feature Breakdown:** Pie chart/progress bars showing which feature (Chat vs Research) uses the most resources.
-- **Timeline:** A "Recent Invocations" table showing the most recent 10 calls.
+- **Timeline:** A "Recent Invocations" table showing the most recent calls.
 
 ---
 

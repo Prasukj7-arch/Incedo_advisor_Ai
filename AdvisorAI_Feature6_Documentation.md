@@ -36,6 +36,7 @@ Feature 6 was implemented using native **Browser Web Speech APIs**, ensuring hig
     2. The "Auto-Speak" toggle is checked.
     3. If enabled, the text is cleaned of markdown characters (`#`, `*`, `_`) and read aloud.
 - **Voice Selection:** Defaults to a professional, natural-sounding voice (e.g., "Google US English" or "Samantha").
+- **Lifecycle Management:** A dynamically appearing "Stop Speech" button allows advisors to interrupt the voice immediately. It uses API events (`onstart`, `onend`, `onerror`) to manage its visibility cleanly.
 
 ---
 
@@ -55,6 +56,7 @@ Feature 6 was implemented using native **Browser Web Speech APIs**, ensuring hig
 | Mic Toggle | Toggle listening on/off with a single click. |
 | Pulse Animation | Visual feedback when the system is actively listening. |
 | Auto-Speak Toggle | Control whether the AI should speak its responses. |
+| Stop Speech Button | Gracefully interrupt the AI voice; dynamic visibility based on speech state. |
 | Markdown Sanitization | Automatically skips reading bold/italic markdown for a natural flow. |
 
 ---

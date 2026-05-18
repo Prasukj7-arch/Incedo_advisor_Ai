@@ -24,8 +24,8 @@ EC2_IP   = os.environ.get("EC2_RAG_IP", "localhost")
 RAG_URL  = f"http://{EC2_IP}:8000/research"
 
 # ── Auth credentials (set in .env or environment) ─────────────────────────────
-WEB_USERNAME = os.environ.get("WEB_USERNAME", "incedo")
-WEB_PASSWORD = os.environ.get("WEB_PASSWORD", "advisor2026")
+WEB_USERNAME = os.environ.get("WEB_USERNAME")
+WEB_PASSWORD = os.environ.get("WEB_PASSWORD")
 
 HEADERS = {
     "Content-Type": "application/json",
