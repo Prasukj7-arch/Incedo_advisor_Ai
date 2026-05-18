@@ -561,15 +561,23 @@ async function loadDashboard() {
     
     try {
         const response = await fetch('/api/dashboard');
-        const data = await response.json();
         
-        // Cache data with current timestamp
-        localStorage.setItem(cacheKey, JSON.stringify({
-            data: data,
-            timestamp: Date.now()
-        }));
-        
-        renderDashboard(data);
+        // ONLY proceed to cache and render if the HTTP status is 200 (OK)
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Validate that we got a successful structure containing insights
+            if (data && data.insights && data.insights.length > 0) {
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    data: data,
+                    timestamp: Date.now()
+                }));
+            }
+            
+            renderDashboard(data);
+        } else {
+            throw new Error(`HTTP status ${response.status}`);
+        }
     } catch (err) {
         console.error("Dashboard error:", err);
         insightsContainer.innerHTML = '<p class="text-gray-500 text-sm">Failed to load proactive insights.</p>';
