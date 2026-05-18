@@ -19,6 +19,38 @@ function formatTimestampIST(isoStr) {
     }
 }
 
+// ── Toast Notification System (replaces all alert() calls) ──────────────────
+const TOAST_ICONS = {
+    error:   '<i class="fa-solid fa-circle-xmark text-red-400 text-base mt-0.5"></i>',
+    success: '<i class="fa-solid fa-circle-check text-green-400 text-base mt-0.5"></i>',
+    info:    '<i class="fa-solid fa-circle-info text-blue-400 text-base mt-0.5"></i>',
+    warning: '<i class="fa-solid fa-triangle-exclamation text-amber-400 text-base mt-0.5"></i>'
+};
+function showToast(message, type = 'info', duration = 4000) {
+    const container = document.getElementById('toast-container');
+    if (!container) { console.warn(message); return; }
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `${TOAST_ICONS[type] || TOAST_ICONS.info}<span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('toast-out');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }, duration);
+}
+
+// ── Dynamic Session ID — unique per browser tab, persisted across page loads ─
+const SESSION_ID = (() => {
+    const key = 'advisor_ai_session_id';
+    let sid = sessionStorage.getItem(key);
+    if (!sid) {
+        sid = 'session-' + (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substring(2));
+        sessionStorage.setItem(key, sid);
+    }
+    return sid;
+})();
+
+
 // Navigation Logic
 const navItems = document.querySelectorAll('.nav-item');
 const featureSections = document.querySelectorAll('.feature-section');
@@ -109,7 +141,7 @@ if (SpeechRecognition) {
 
 micBtn.addEventListener('click', () => {
     if (!recognition) {
-        alert("Speech recognition not supported in this browser.");
+        showToast("Speech recognition not supported in this browser.", 'warning');
         return;
     }
     if (isListening) {
@@ -210,7 +242,7 @@ chatForm.addEventListener('submit', async (e) => {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: query, session_id: 'frontend-session-01' })
+            body: JSON.stringify({ question: query, session_id: SESSION_ID })
         });
         
         const data = await response.json();
@@ -286,12 +318,12 @@ ragForm.addEventListener('submit', async (e) => {
                 ragSources.innerHTML = '<li class="text-sm text-gray-500">No specific sources cited.</li>';
             }
         } else {
-            alert(`Error: ${data.detail}`);
+            showToast(`Research error: ${data.detail}`, 'error');
             ragResultsContainer.classList.add('hidden');
         }
     } catch (err) {
         ragLoader.classList.add('hidden');
-        alert(`Error: ${err.message}`);
+        showToast(`Research error: ${err.message}`, 'error');
     }
 });
 
@@ -353,11 +385,11 @@ async function generateBrief(clientName) {
             document.getElementById('b-text').innerHTML = marked.parse(data.brief);
             
         } else {
-            alert(`Error: ${data.detail || 'Client not found'}`);
+            showToast(`Error: ${data.detail || 'Client not found'}`, 'error');
         }
     } catch (err) {
         document.getElementById('brief-loader').classList.add('hidden');
-        alert(`Error: ${err.message}`);
+        showToast(`Error: ${err.message}`, 'error');
     }
 }
 
@@ -459,11 +491,11 @@ async function runComplianceCheck(clientFilter = '') {
             });
             
         } else {
-            alert(`Error: ${data.detail}`);
+            showToast(`Compliance error: ${data.detail}`, 'error');
         }
     } catch (err) {
         loader.classList.add('hidden');
-        alert(`Error: ${err.message}`);
+        showToast(`Compliance error: ${err.message}`, 'error');
     }
 }
 
@@ -673,7 +705,7 @@ async function loadObservability() {
         }
     } catch (err) {
         loader.classList.add('hidden');
-        alert('Error: ' + err.message);
+        showToast('Observability error: ' + err.message, 'error');
     }
 }
 
@@ -755,14 +787,14 @@ async function loadSupervisionQueue() {
         }
     } catch (err) {
         loader.classList.add('hidden');
-        alert('Supervision fetch error: ' + err.message);
+        showToast('Supervision fetch error: ' + err.message, 'error');
     }
 }
 
 async function submitSupervisionAction(reviewId, action) {
     const notes = document.getElementById(`notes-${reviewId}`).value;
     if (!notes) {
-        alert("Mandatory: Please provide supervisor notes explaining the decision.");
+        showToast("Mandatory: Please provide supervisor notes explaining the decision.", 'warning');
         return;
     }
 
@@ -778,14 +810,14 @@ async function submitSupervisionAction(reviewId, action) {
         });
 
         if (response.ok) {
-            alert(`Successfully ${action.toLowerCase()}d recommendation ${reviewId}.`);
+            showToast(`Successfully ${action.toLowerCase()}d recommendation ${reviewId}.`, 'success');
             loadSupervisionQueue(); // Refresh the list
         } else {
             const data = await response.json();
-            alert(`Action failed: ${data.detail}`);
+            showToast(`Action failed: ${data.detail}`, 'error');
         }
     } catch (err) {
-        alert(`Error: ${err.message}`);
+        showToast(`Error: ${err.message}`, 'error');
     }
 }
 
@@ -803,7 +835,7 @@ async function runSimulation() {
     const empty = document.getElementById('sim-empty');
     
     if (!scenario) {
-        alert("Please describe a scenario.");
+        showToast("Please describe a scenario first.", 'warning');
         return;
     }
     
@@ -844,7 +876,7 @@ async function runSimulation() {
         
     } catch (err) {
         console.error("Simulation error:", err);
-        alert("Failed to run simulation. Please try again.");
+        showToast("Simulation failed. Please try again.", 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-play"></i> Run Simulation';
@@ -966,7 +998,7 @@ async function generateRevenue() {
 
     } catch (err) {
         console.error('Revenue error:', err);
-        alert('Failed to generate opportunities. Please try again.');
+        showToast('Failed to generate opportunities. Please try again.', 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-sack-dollar"></i> Generate Opportunities';

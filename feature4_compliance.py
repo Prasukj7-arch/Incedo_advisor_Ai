@@ -191,9 +191,16 @@ def run_compliance_check(client_name: str = None) -> dict:
             except Exception:
                 pass
 
-        # Log to CloudWatch if violations found (Moving this to a background/non-blocking thought)
-        # if client_violations:
-        #     log_to_cloudwatch(client["name"], client_violations)
+        # Log to CloudWatch in a non-blocking background thread (zero latency impact)
+        if client_violations:
+            import threading
+            t = threading.Thread(
+                target=log_to_cloudwatch,
+                args=(client["name"], client_violations),
+                daemon=True
+            )
+            t.start()
+
 
         results.append({
             "client_id": client.get("id", "UNK"),

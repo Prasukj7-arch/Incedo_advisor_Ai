@@ -1,4 +1,20 @@
+# Core server
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.0.0
+
+# AWS SDK
 boto3>=1.34.0
-streamlit>=1.32.0
+
+# HTTP client (FastAPI proxy calls)
 requests>=2.31.0
+
+# Environment variables
 python-dotenv>=1.0.0
+
+# RAG / Vector store
+chromadb>=0.4.0
+pypdf>=3.0.0
+
+# PDF generation (research docs)
+fpdf2>=2.7.0
