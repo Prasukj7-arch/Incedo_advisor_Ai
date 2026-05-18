@@ -156,19 +156,30 @@ aws lambda add-permission \
 ```javascript
 // Auto-loads on page open
 loadDashboard();
-// Refreshes every 5 minutes
-setInterval(loadDashboard, 300000);
+// Caches insights for 6 hours (cost optimization)
+setInterval(loadDashboard, 21600000); 
 
 async function loadDashboard() {
+    // 1. Check valid cache (less than 6 hours old)
+    // 2. Fetch new insights if cache missing or expired
     const response = await fetch('/api/dashboard');
-    const data = await response.json();
     
-    // Render each insight with type-aware color scheme
-    data.insights.forEach(insight => {
-        const icon    = insight.type === 'warning' ? 'fa-triangle-exclamation' : ...;
-        const color   = insight.type === 'warning' ? 'text-amber-400' : ...;
-        // Renders colored card with client label + insight text
-    });
+    // SAFE-CACHING: Only cache if HTTP 200 OK and data is valid
+    if (response.ok) {
+        const data = await response.json();
+        if (data && data.insights && data.insights.length > 0) {
+            localStorage.setItem(cacheKey, JSON.stringify({data, timestamp: Date.now()}));
+        }
+        // Render each insight with type-aware color scheme
+        data.insights.forEach(insight => {
+            const icon    = insight.type === 'warning' ? 'fa-triangle-exclamation' : ...;
+            const color   = insight.type === 'warning' ? 'text-amber-400' : ...;
+            // Renders colored card with client label + insight text
+        });
+    } else {
+        // Prevents caching of 403/500 cold-start errors (cache poisoning protection)
+        throw new Error(`HTTP status ${response.status}`);
+    }
 }
 ```
 
@@ -244,7 +255,7 @@ Dashboard (not Portfolio Chat) is active on page load ✅
 | `/dashboard` API Gateway resource | ✅ DONE | POST, API key required, Lambda permission granted |
 | `GET /api/dashboard` FastAPI endpoint | ✅ DONE | Proxies to Lambda with auth, 30s timeout |
 | Dashboard HTML section | ✅ DONE | 4 KPI cards + AI insights + audit feed |
-| `loadDashboard()` in app.js | ✅ DONE | Auto-loads on page open, refreshes every 5 min |
+| `loadDashboard()` in app.js | ✅ DONE | Auto-loads on page open, safe-caches for 6 hours |
 | Insight type rendering | ✅ DONE | warning/info/success with icons and colors |
 | Executive Dashboard as default home | ✅ DONE | Active section on page load |
 | Sidebar restructure | ✅ DONE | Advisor Tools + Management & Risk sections |
