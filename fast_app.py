@@ -233,8 +233,8 @@ def api_status(username: str = Depends(verify_credentials)):
 def api_observability(username: str = Depends(verify_credentials)):
     try:
         table = dynamodb.Table("advisor-ai-metrics")
-        # Scan last 50 records
-        response = table.scan(Limit=50)
+        # Scan full history of metrics (100% Free on AWS)
+        response = table.scan()
         items = response.get("Items", [])
         
         # Calculate aggregates
