@@ -6,7 +6,7 @@ from typing import Optional
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env file
+load_dotenv(override=True)  # Force .env values to override existing system variables
 
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
 # pyrefly: ignore [missing-import]
