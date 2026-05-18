@@ -7,9 +7,11 @@
 
 ```
 URL:      https://strained-aletha-easeled.ngrok-free.dev
-Username: incedo
-Password: advisor2026
+Username: <set via WEB_USERNAME env var — see .env.example>
+Password: <set via WEB_PASSWORD env var — see .env.example>
 ```
+
+> ⚠️ **Security Note:** Credentials are never committed to this repository. Set them via environment variables in your `.env` file. See `.env.example` for the template.
 
 ---
 
@@ -354,6 +356,9 @@ Lambda reading from S3 on every request adds 200-400ms latency. Embedded JSON da
 | HTTP on raw IP | HTTPS via ngrok | Security and professionalism for evaluator access |
 | No auth | HTTP Basic Auth | Prevent unauthorized access to live demo |
 | No voice | Browser Web Speech API | Section 5.1 explicitly requires voice interaction |
+| Basic timestamps | IST Localization | All timestamps correctly localized to Indian Standard Time |
+| Hardcoded sessions | Dynamic UUID Sessions | UUID generation allows multiple advisors to use the system simultaneously |
+| Browser alert() dialogs | Toast Notification System | Replaced blocking alerts with animated glassmorphism toasts for premium UX |
 | No observability | DynamoDB metrics + Dashboard | Section 6.5 requires AI model performance tracking |
 | No human oversight | HITL Supervision Queue | Section 10 explicitly mandates human-in-the-loop |
 
@@ -399,8 +404,13 @@ advisor-ai/                          # Local Mac project folder
 ├── bedrock_client.py                # Local Bedrock wrapper (Llama format)
 ├── create_research_docs.py          # Script to generate research PDFs
 ├── requirements.txt                 # Python dependencies
+├── .env.example                     # Environment variables template (safe to commit)
 ├── .env                             # Secrets — gitignored, never committed
 ├── .gitignore                       # Excludes .env, .pem, .venv, lambda.zip
+│
+├── tests/                           # Automated pytest suite (31 tests)
+│   ├── test_advisor_ai.py           # Unit & integration tests for features
+│   └── __init__.py
 │
 ├── AdvisorAI_Feature1_Documentation.md
 ├── AdvisorAI_Feature2_Documentation.md
@@ -467,19 +477,18 @@ source .venv/bin/activate
 pip install fastapi uvicorn requests python-dotenv boto3 fpdf2 pypdf chromadb
 
 # 4. Create .env file
-cat > .env << EOF
-ADVISOR_AI_KEY=your_api_key_here
-EC2_RAG_IP=your_ec2_ip_here
-WEB_USERNAME=incedo
-WEB_PASSWORD=advisor2026
-EOF
+cp .env.example .env
+# Then edit .env with your actual credentials — never commit this file
 
-# 5. Run the app
+# 5. Run the Automated Test Suite
+pytest tests/test_advisor_ai.py -v
+
+# 6. Run the app
 uvicorn fast_app:app --reload --port 8080
 
-# 6. Open browser
+# 7. Open browser
 open http://localhost:8080
-# Login: incedo / advisor2026
+# Login: use the credentials you set in your .env file
 ```
 
 ---
@@ -494,8 +503,8 @@ The app runs on AWS EC2 (t3.micro, free tier) with ngrok providing HTTPS.
 #!/bin/bash
 export ADVISOR_AI_KEY=YOUR_API_KEY
 export EC2_RAG_IP=localhost
-export WEB_USERNAME=incedo
-export WEB_PASSWORD=advisor2026
+export WEB_USERNAME=$WEB_USERNAME   # Load from secure environment / secrets manager
+export WEB_PASSWORD=$WEB_PASSWORD   # Load from secure environment / secrets manager
 cd /home/ec2-user/Incedo_advisor_Ai
 git pull origin main
 cd /home/ec2-user/advisor-ai-rag
@@ -566,7 +575,7 @@ aws apigateway update-usage-plan \
 
 # 5. Open the app
 open https://strained-aletha-easeled.ngrok-free.dev
-# Login: incedo / advisor2026
+# Login: use the credentials you set in your .env file
 ```
 
 ---
