@@ -51,6 +51,22 @@ const SESSION_ID = (() => {
 })();
 
 
+// Mobile Sidebar Toggle Logic
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+function toggleSidebar() {
+    if (sidebar) sidebar.classList.toggle('-translate-x-full');
+    if (sidebarOverlay) sidebarOverlay.classList.toggle('hidden');
+}
+
+if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebar);
+if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', toggleSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+
+
 // Navigation Logic
 const navItems = document.querySelectorAll('.nav-item');
 const featureSections = document.querySelectorAll('.feature-section');
@@ -83,6 +99,11 @@ navItems.forEach(item => {
         // Update Header
         headerTitle.textContent = sectionData[targetId].title;
         headerSubtitle.textContent = sectionData[targetId].subtitle;
+        
+        // Close sidebar on mobile
+        if (window.innerWidth < 768 && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+            toggleSidebar();
+        }
     });
 });
 
@@ -739,45 +760,45 @@ async function loadSupervisionQueue() {
             list.innerHTML = '';
             data.forEach(item => {
                 const violationsHtml = item.violations.map(v => `
-                    <span class="px-2 py-1 bg-red-900/30 text-red-400 border border-red-500/30 rounded text-[10px] font-bold">
+                    <span class="px-1.5 py-0.5 bg-red-900/30 text-red-400 border border-red-500/30 rounded text-[9px] font-bold">
                         ${v}
                     </span>
                 `).join(' ');
 
                 list.innerHTML += `
-                    <div class="glass p-6 rounded-2xl border border-gray-700/50 shadow-xl relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-3">
-                            <span class="text-[10px] font-mono text-gray-500 uppercase">${item.review_id}</span>
+                    <div class="glass p-4 md:p-6 rounded-xl md:rounded-2xl border border-gray-700/50 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-2.5">
+                            <span class="text-[8px] md:text-[10px] font-mono text-gray-500 uppercase">${item.review_id}</span>
                         </div>
                         
-                        <div class="flex items-start gap-4 mb-4">
-                            <div class="w-12 h-12 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-xl font-bold">
+                        <div class="flex items-start gap-3 md:gap-4 mb-3 md:mb-4">
+                            <div class="w-9 h-9 md:w-12 md:h-12 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-sm md:text-xl font-bold flex-shrink-0">
                                 ${item.client_name.substring(0, 1)}
                             </div>
                             <div>
-                                <h4 class="font-bold text-white text-lg">${item.client_name}</h4>
-                                <p class="text-xs text-gray-500">Feature: ${item.feature.replace('_', ' ').toUpperCase()}</p>
+                                <h4 class="font-bold text-white text-sm md:text-lg leading-tight">${item.client_name}</h4>
+                                <p class="text-[10px] md:text-xs text-gray-500 mt-0.5">Feature: ${item.feature.replace('_', ' ').toUpperCase()}</p>
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <p class="text-xs font-bold text-gray-500 uppercase mb-2">Violations Detected</p>
-                            <div class="flex flex-wrap gap-2">${violationsHtml}</div>
+                        <div class="mb-3 md:mb-4">
+                            <p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1.5">Violations Detected</p>
+                            <div class="flex flex-wrap gap-1.5">${violationsHtml}</div>
                         </div>
 
-                        <div class="bg-black/30 p-4 rounded-xl border border-gray-700/50 mb-6">
-                            <p class="text-xs font-bold text-gray-500 uppercase mb-2">Proposed Recommendation</p>
-                            <p class="text-sm text-gray-300 italic">"${item.recommendation}"</p>
+                        <div class="bg-black/30 p-3 md:p-4 rounded-xl border border-gray-700/50 mb-4 md:mb-6">
+                            <p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Proposed Recommendation</p>
+                            <p class="text-xs md:text-sm text-gray-300 italic leading-relaxed">"${item.recommendation}"</p>
                         </div>
 
-                        <div class="space-y-4">
-                            <textarea id="notes-${item.review_id}" class="w-full bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-sm text-gray-200 focus:outline-none focus:border-blue-500" rows="2" placeholder="Add supervisor notes here..."></textarea>
-                            <div class="flex gap-3">
-                                <button onclick="submitSupervisionAction('${item.review_id}', 'APPROVE')" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-check"></i> Approve Advice
+                        <div class="space-y-3">
+                            <textarea id="notes-${item.review_id}" class="w-full bg-gray-900/60 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500" rows="2" placeholder="Add supervisor notes here..."></textarea>
+                            <div class="flex gap-2">
+                                <button onclick="submitSupervisionAction('${item.review_id}', 'APPROVE')" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-1.5 md:py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-xs md:text-sm">
+                                    <i class="fa-solid fa-check"></i> Approve
                                 </button>
-                                <button onclick="submitSupervisionAction('${item.review_id}', 'OVERRIDE')" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-xmark"></i> Override & Block
+                                <button onclick="submitSupervisionAction('${item.review_id}', 'OVERRIDE')" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-1.5 md:py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-xs md:text-sm">
+                                    <i class="fa-solid fa-xmark"></i> Block
                                 </button>
                             </div>
                         </div>

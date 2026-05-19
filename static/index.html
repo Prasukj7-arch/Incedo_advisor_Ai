@@ -59,72 +59,79 @@
     <!-- Toast Notification Container -->
     <div id="toast-container"></div>
 
+    <!-- Sidebar Overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
 
     <!-- Sidebar -->
-    <aside class="sidebar w-72 flex flex-col flex-shrink-0 z-10 overflow-hidden h-screen border-r border-gray-800">
-        <div class="p-6 border-b border-gray-700/50">
-                <h1 class="text-2xl font-bold outfit text-white flex items-center gap-3">
-                    <i class="fa-solid fa-briefcase text-blue-500"></i>
-                    Advisor AI
-                </h1>
-                <p class="text-sm text-gray-400 mt-1">Intelligent Financial Concierge</p>
+    <aside id="sidebar" class="sidebar w-64 md:w-72 flex flex-col flex-shrink-0 z-30 overflow-hidden h-screen border-r border-gray-800 absolute md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+        <div class="p-5 md:p-6 border-b border-gray-700/50 flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold outfit text-white flex items-center gap-3">
+                        <i class="fa-solid fa-briefcase text-blue-500"></i>
+                        Advisor AI
+                    </h1>
+                    <p class="text-xs md:text-sm text-gray-400 mt-1">Intelligent Financial Concierge</p>
+                </div>
+                <button id="close-sidebar-btn" class="md:hidden text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
             </div>
             
-            <nav class="flex-1 overflow-y-auto p-4 space-y-4" id="nav-menu">
+            <nav class="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4" id="nav-menu">
                 <!-- ADVISOR TOOLS SECTION -->
                 <div>
-                    <h3 class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Advisor Tools</h3>
-                    <div class="space-y-1">
-                        <button class="nav-item active w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-dashboard">
-                            <i class="fa-solid fa-house-laptop w-5 text-center"></i>
-                            <span>Executive Dashboard</span>
+                    <h3 class="px-3 md:px-4 text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 md:mb-2">Advisor Tools</h3>
+                    <div class="space-y-0.5 md:space-y-1">
+                        <button class="nav-item active w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center gap-2 md:gap-3 text-gray-300 hover:text-white" data-target="feature-dashboard">
+                            <i class="fa-solid fa-house-laptop w-4 md:w-5 text-center text-xs md:text-sm"></i>
+                            <span class="text-xs md:text-sm font-medium">Executive Dashboard</span>
                         </button>
-                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-chat">
-                            <i class="fa-solid fa-chart-pie w-5 text-center"></i>
-                            <span>Portfolio Chat</span>
+                        <button class="nav-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center gap-2 md:gap-3 text-gray-300 hover:text-white" data-target="feature-chat">
+                            <i class="fa-solid fa-chart-pie w-4 md:w-5 text-center text-xs md:text-sm"></i>
+                            <span class="text-xs md:text-sm font-medium">Portfolio Chat</span>
                         </button>
-                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-rag">
-                            <i class="fa-solid fa-magnifying-glass w-5 text-center"></i>
-                            <span>Research Search</span>
+                        <button class="nav-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center gap-2 md:gap-3 text-gray-300 hover:text-white" data-target="feature-rag">
+                            <i class="fa-solid fa-magnifying-glass w-4 md:w-5 text-center text-xs md:text-sm"></i>
+                            <span class="text-xs md:text-sm font-medium">Research Search</span>
                         </button>
-                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-client360">
-                            <i class="fa-solid fa-user-tie w-5 text-center"></i>
-                            <span>Client 360</span>
+                        <button class="nav-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center gap-2 md:gap-3 text-gray-300 hover:text-white" data-target="feature-client360">
+                            <i class="fa-solid fa-user-tie w-4 md:w-5 text-center text-xs md:text-sm"></i>
+                            <span class="text-xs md:text-sm font-medium">Client 360</span>
                         </button>
-                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-compliance">
-                            <i class="fa-solid fa-shield-halved w-5 text-center"></i>
-                            <span>Compliance Monitor</span>
+                        <button class="nav-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center gap-2 md:gap-3 text-gray-300 hover:text-white" data-target="feature-compliance">
+                            <i class="fa-solid fa-shield-halved w-4 md:w-5 text-center text-xs md:text-sm"></i>
+                            <span class="text-xs md:text-sm font-medium">Compliance Monitor</span>
                         </button>
-                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-revenue">
-                            <i class="fa-solid fa-sack-dollar w-5 text-center"></i>
-                            <span>Revenue Enablement</span>
+                        <button class="nav-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center gap-2 md:gap-3 text-gray-300 hover:text-white" data-target="feature-revenue">
+                            <i class="fa-solid fa-sack-dollar w-4 md:w-5 text-center text-xs md:text-sm"></i>
+                            <span class="text-xs md:text-sm font-medium">Revenue Enablement</span>
                         </button>
-                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-300 hover:text-white" data-target="feature-simulator">
-                            <i class="fa-solid fa-flask w-5 text-center"></i>
-                            <span>Portfolio Simulator</span>
+                        <button class="nav-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center gap-2 md:gap-3 text-gray-300 hover:text-white" data-target="feature-simulator">
+                            <i class="fa-solid fa-flask w-4 md:w-5 text-center text-xs md:text-sm"></i>
+                            <span class="text-xs md:text-sm font-medium">Portfolio Simulator</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- MANAGEMENT & RISK SECTION -->
                 <div>
-                    <h3 class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Management & Risk</h3>
-                    <div class="space-y-1">
-                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-400 hover:text-white group" data-target="feature-observability">
-                            <i class="fa-solid fa-chart-line w-5 text-center"></i>
+                    <h3 class="px-3 md:px-4 text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 md:mb-2">Management & Risk</h3>
+                    <div class="space-y-0.5 md:space-y-1">
+                        <button class="nav-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center gap-2 md:gap-3 text-gray-400 hover:text-white group" data-target="feature-observability">
+                            <i class="fa-solid fa-chart-line w-4 md:w-5 text-center text-xs md:text-sm"></i>
                             <div class="flex flex-col">
-                                <span>AI Observability</span>
-                                <span class="text-[9px] text-blue-500 font-bold uppercase tracking-tighter">Internal Use</span>
+                                <span class="text-xs md:text-sm font-medium">AI Observability</span>
+                                <span class="text-[8px] md:text-[9px] text-blue-500 font-bold uppercase tracking-tighter">Internal Use</span>
                             </div>
                         </button>
-                        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-gray-400 hover:text-white group" data-target="feature-supervision">
-                            <i class="fa-solid fa-user-check w-5 text-center"></i>
+                        <button class="nav-item w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center gap-2 md:gap-3 text-gray-400 hover:text-white group" data-target="feature-supervision">
+                            <i class="fa-solid fa-user-check w-4 md:w-5 text-center text-xs md:text-sm"></i>
                             <div class="flex flex-col">
-                                <div class="flex items-center gap-2">
-                                    <span>Supervision Queue</span>
-                                    <span id="supervision-badge" class="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                                <div class="flex items-center gap-1.5 md:gap-2">
+                                    <span class="text-xs md:text-sm font-medium">Supervision Queue</span>
+                                    <span id="supervision-badge" class="bg-red-500 text-white text-[8px] md:text-[9px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
                                 </div>
-                                <span class="text-[9px] text-amber-500 font-bold uppercase tracking-tighter">Compliance View</span>
+                                <span class="text-[8px] md:text-[9px] text-amber-500 font-bold uppercase tracking-tighter">Compliance View</span>
                             </div>
                         </button>
                     </div>
@@ -183,50 +190,55 @@
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen relative overflow-y-auto">
         <!-- Top Bar -->
-        <header class="glass sticky top-0 z-10 px-8 py-5 border-b-0 border-x-0 border-t-0 flex justify-between items-center rounded-none">
-            <div>
-                <h2 class="text-xl font-bold outfit text-white" id="header-title">Portfolio Chat</h2>
-                <p class="text-sm text-gray-400" id="header-subtitle">Ask anything about your client portfolios in natural language.</p>
+        <header class="glass sticky top-0 z-10 px-4 md:px-8 py-3 md:py-5 border-b-0 border-x-0 border-t-0 flex justify-between items-center rounded-none">
+            <div class="flex items-center gap-3">
+                <button id="mobile-menu-btn" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div>
+                    <h2 class="text-lg md:text-xl font-bold outfit text-white" id="header-title">Portfolio Chat</h2>
+                    <p class="text-xs md:text-sm text-gray-400 hidden sm:block" id="header-subtitle">Ask anything about your client portfolios in natural language.</p>
+                </div>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="text-sm text-gray-400"><i class="fa-regular fa-clock mr-1"></i> <span id="current-time"></span></div>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white font-bold shadow-lg">AD</div>
+            <div class="flex items-center gap-3 md:gap-4">
+                <div class="text-xs md:text-sm text-gray-400 hidden sm:block"><i class="fa-regular fa-clock mr-1"></i> <span id="current-time"></span></div>
+                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white text-xs md:text-base font-bold shadow-lg">AD</div>
             </div>
         </header>
 
-        <div class="p-8 flex-1">
+        <div class="p-4 md:p-8 flex-1">
             
             <!-- FEATURE 9: Executive Dashboard (HOME) -->
             <section id="feature-dashboard" class="feature-section active h-full flex flex-col max-w-6xl mx-auto">
                 <!-- Summary Stats -->
-                <div class="grid grid-cols-4 gap-6 mb-8">
-                    <div class="glass p-6 rounded-2xl border-t-4 border-blue-500">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Book AUM</p>
-                        <h3 class="text-2xl font-bold text-white">$3.4M</h3>
-                        <p class="text-xs text-green-400 mt-2"><i class="fa-solid fa-arrow-up"></i> 1.2% this month</p>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-1.5 md:gap-6 mb-6 md:mb-8">
+                    <div class="glass p-2 md:p-6 rounded-xl md:rounded-2xl border-t-[2.5px] md:border-t-4 border-blue-500">
+                        <p class="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Total Book AUM</p>
+                        <h3 class="text-sm md:text-2xl font-bold text-white">$3.4M</h3>
+                        <p class="text-[8.5px] md:text-xs text-green-400 mt-0.5 md:mt-2"><i class="fa-solid fa-arrow-up"></i> 1.2% this month</p>
                     </div>
-                    <div class="glass p-6 rounded-2xl border-t-4 border-green-500">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Avg. YTD Return</p>
-                        <h3 class="text-2xl font-bold text-white">13.7%</h3>
-                        <p class="text-xs text-gray-500 mt-2">v/s 11.2% Benchmark</p>
+                    <div class="glass p-2 md:p-6 rounded-xl md:rounded-2xl border-t-[2.5px] md:border-t-4 border-green-500">
+                        <p class="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Avg. YTD Return</p>
+                        <h3 class="text-sm md:text-2xl font-bold text-white">13.7%</h3>
+                        <p class="text-[8.5px] md:text-xs text-gray-500 mt-0.5 md:mt-2">v/s 11.2% Benchmark</p>
                     </div>
-                    <div class="glass p-6 rounded-2xl border-t-4 border-red-500">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Compliance Health</p>
-                        <h3 class="text-2xl font-bold text-white" id="dash-compliance-count">0 Flags</h3>
-                        <p class="text-xs text-red-400 mt-2"><i class="fa-solid fa-circle-exclamation"></i> Immediate action needed</p>
+                    <div class="glass p-2 md:p-6 rounded-xl md:rounded-2xl border-t-[2.5px] md:border-t-4 border-red-500">
+                        <p class="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Compliance Health</p>
+                        <h3 class="text-sm md:text-2xl font-bold text-white" id="dash-compliance-count">0 Flags</h3>
+                        <p class="text-[8.5px] md:text-xs text-red-400 mt-0.5 md:mt-2"><i class="fa-solid fa-circle-exclamation"></i> Immediate action</p>
                     </div>
-                    <div class="glass p-6 rounded-2xl border-t-4 border-purple-500">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Clients</p>
-                        <h3 class="text-2xl font-bold text-white">3</h3>
-                        <p class="text-xs text-gray-500 mt-2">All sectors covered</p>
+                    <div class="glass p-2 md:p-6 rounded-xl md:rounded-2xl border-t-[2.5px] md:border-t-4 border-purple-500">
+                        <p class="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Active Clients</p>
+                        <h3 class="text-sm md:text-2xl font-bold text-white">3</h3>
+                        <p class="text-[8.5px] md:text-xs text-gray-500 mt-0.5 md:mt-2">All sectors covered</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-8 flex-1">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 flex-1">
                     <!-- PROACTIVE INSIGHTS -->
                     <div class="col-span-2 flex flex-col gap-6">
-                        <div class="glass p-8 rounded-3xl flex-1 bg-gradient-to-br from-blue-600/10 to-purple-600/5 border-blue-500/20">
-                            <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
+                        <div class="glass p-4 md:p-8 rounded-2xl md:rounded-3xl flex-1 bg-gradient-to-br from-blue-600/10 to-purple-600/5 border-blue-500/20">
+                            <h3 class="text-lg md:text-xl font-bold mb-4 md:mb-6 flex items-center gap-3">
                                 <i class="fa-solid fa-brain text-blue-400"></i> AI Proactive Recommendations
                             </h3>
                             <div class="space-y-4" id="dash-insights">
@@ -241,8 +253,8 @@
                     </div>
 
                     <!-- RECENT ACTIVITY -->
-                    <div class="glass p-8 rounded-3xl">
-                        <h3 class="text-lg font-bold mb-6 flex items-center gap-3">
+                    <div class="glass p-4 md:p-8 rounded-2xl md:rounded-3xl hidden lg:block">
+                        <h3 class="text-base md:text-lg font-bold mb-4 md:mb-6 flex items-center gap-3">
                             <i class="fa-solid fa-list-check text-gray-400"></i> Audit Feed
                         </h3>
                         <div class="space-y-6" id="dash-audit-feed">
@@ -268,21 +280,21 @@
             <!-- FEATURE 1: Portfolio Chat -->
             <section id="feature-chat" class="feature-section h-full flex flex-col max-w-5xl mx-auto">
                 
-                <div class="grid grid-cols-3 gap-4 mb-6">
-                    <button class="btn-secondary rounded-xl p-4 text-left flex flex-col gap-2 hover:border-blue-500/50 transition-all group" onclick="fillChat('Summarize my entire book performance today')">
-                        <i class="fa-solid fa-arrow-trend-up text-blue-400 group-hover:scale-110 transition-transform"></i>
-                        <span class="font-medium text-gray-200">Summarize Book</span>
-                        <span class="text-xs text-gray-500">Get today's overall performance</span>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <button class="btn-secondary rounded-xl p-2.5 text-center flex flex-col items-center justify-center gap-1.5 hover:border-blue-500/50 transition-all group" onclick="fillChat('Summarize my entire book performance today')">
+                        <i class="fa-solid fa-arrow-trend-up text-blue-400 group-hover:scale-110 transition-transform text-sm md:text-base"></i>
+                        <span class="font-semibold text-[10px] md:text-sm text-gray-200">Summarize</span>
+                        <span class="text-[9px] text-gray-500 hidden md:block">Get today's overall performance</span>
                     </button>
-                    <button class="btn-secondary rounded-xl p-4 text-left flex flex-col gap-2 hover:border-red-500/50 transition-all group" onclick="fillChat('What are the top risks across all my client portfolios?')">
-                        <i class="fa-solid fa-triangle-exclamation text-red-400 group-hover:scale-110 transition-transform"></i>
-                        <span class="font-medium text-gray-200">Top Risks</span>
-                        <span class="text-xs text-gray-500">Analyze vulnerabilities across book</span>
+                    <button class="btn-secondary rounded-xl p-2.5 text-center flex flex-col items-center justify-center gap-1.5 hover:border-red-500/50 transition-all group" onclick="fillChat('What are the top risks across all my client portfolios?')">
+                        <i class="fa-solid fa-triangle-exclamation text-red-400 group-hover:scale-110 transition-transform text-sm md:text-base"></i>
+                        <span class="font-semibold text-[10px] md:text-sm text-gray-200">Top Risks</span>
+                        <span class="text-[9px] text-gray-500 hidden md:block">Analyze vulnerabilities across book</span>
                     </button>
-                    <button class="btn-secondary rounded-xl p-4 text-left flex flex-col gap-2 hover:border-green-500/50 transition-all group" onclick="fillChat('Which client portfolios need rebalancing?')">
-                        <i class="fa-solid fa-scale-balanced text-green-400 group-hover:scale-110 transition-transform"></i>
-                        <span class="font-medium text-gray-200">Rebalancing</span>
-                        <span class="text-xs text-gray-500">Identify deviation from targets</span>
+                    <button class="btn-secondary rounded-xl p-2.5 text-center flex flex-col items-center justify-center gap-1.5 hover:border-green-500/50 transition-all group" onclick="fillChat('Which client portfolios need rebalancing?')">
+                        <i class="fa-solid fa-scale-balanced text-green-400 group-hover:scale-110 transition-transform text-sm md:text-base"></i>
+                        <span class="font-semibold text-[10px] md:text-sm text-gray-200">Rebalancing</span>
+                        <span class="text-[9px] text-gray-500 hidden md:block">Identify deviation from targets</span>
                     </button>
                 </div>
 
@@ -328,23 +340,23 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 h-full">
                     <div class="col-span-2 flex flex-col gap-6 h-full">
-                        <div class="glass rounded-2xl p-8 border border-gray-700/50 shadow-2xl relative overflow-hidden">
+                        <div class="glass rounded-2xl p-4 md:p-8 border border-gray-700/50 shadow-2xl relative overflow-hidden">
                             <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
                             
-                            <h3 class="text-xl font-bold outfit mb-2">Search Research Database</h3>
-                            <p class="text-sm text-gray-400 mb-6">Ask complex questions across hundreds of financial reports.</p>
+                            <h3 class="text-lg md:text-xl font-bold outfit mb-1">Search Research Database</h3>
+                            <p class="text-xs md:text-sm text-gray-400 mb-4 md:mb-6">Ask complex questions across hundreds of financial reports.</p>
                             
-                            <form id="rag-form" class="relative mb-6">
-                                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                <input type="text" id="rag-input" class="w-full bg-gray-900/60 border border-gray-600 rounded-xl py-4 pl-12 pr-32 text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all text-lg shadow-inner" placeholder="e.g. What are NVIDIA's growth prospects?" required>
-                                <button type="submit" class="btn-primary absolute right-2 top-2 bottom-2 px-6 rounded-lg font-semibold text-white">Search</button>
+                            <form id="rag-form" class="relative mb-4 md:mb-6">
+                                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm md:text-base"></i>
+                                <input type="text" id="rag-input" class="w-full bg-gray-900/60 border border-gray-600 rounded-xl py-2.5 md:py-4 pl-10 md:pl-12 pr-24 md:pr-32 text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all text-xs md:text-lg shadow-inner" placeholder="e.g. What are NVIDIA's prospects?" required>
+                                <button type="submit" class="btn-primary absolute right-1.5 top-1.5 bottom-1.5 px-4 md:px-6 rounded-lg font-semibold text-white text-xs md:text-base">Search</button>
                             </form>
                             
-                            <div class="flex flex-wrap gap-2">
-                                <button class="px-3 py-1.5 rounded-full border border-gray-600 bg-gray-800/50 text-xs text-gray-300 hover:bg-gray-700 hover:text-white transition-colors" onclick="fillRag('What are the top picks in semiconductor sector?')">Semiconductor picks</button>
-                                <button class="px-3 py-1.5 rounded-full border border-gray-600 bg-gray-800/50 text-xs text-gray-300 hover:bg-gray-700 hover:text-white transition-colors" onclick="fillRag('What is the outlook for Indian banking sector?')">Banking outlook</button>
-                                <button class="px-3 py-1.5 rounded-full border border-gray-600 bg-gray-800/50 text-xs text-gray-300 hover:bg-gray-700 hover:text-white transition-colors" onclick="fillRag('What is the outlook for Indian IT sector?')">IT Sector outlook</button>
-                                <button class="px-3 py-1.5 rounded-full border border-gray-600 bg-gray-800/50 text-xs text-gray-300 hover:bg-gray-700 hover:text-white transition-colors" onclick="fillRag('What is India GDP growth forecast?')">India GDP forecast</button>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button class="px-2.5 py-1 rounded-full border border-gray-600 bg-gray-800/50 text-[10px] md:text-xs text-gray-300 hover:bg-gray-700 hover:text-white transition-colors" onclick="fillRag('What are the top picks in semiconductor sector?')">Semiconductor picks</button>
+                                <button class="px-2.5 py-1 rounded-full border border-gray-600 bg-gray-800/50 text-[10px] md:text-xs text-gray-300 hover:bg-gray-700 hover:text-white transition-colors" onclick="fillRag('What is the outlook for Indian banking sector?')">Banking outlook</button>
+                                <button class="px-2.5 py-1 rounded-full border border-gray-600 bg-gray-800/50 text-[10px] md:text-xs text-gray-300 hover:bg-gray-700 hover:text-white transition-colors" onclick="fillRag('What is the outlook for Indian IT sector?')">IT Sector outlook</button>
+                                <button class="px-2.5 py-1 rounded-full border border-gray-600 bg-gray-800/50 text-[10px] md:text-xs text-gray-300 hover:bg-gray-700 hover:text-white transition-colors" onclick="fillRag('What is India GDP growth forecast?')">India GDP forecast</button>
                             </div>
                         </div>
 
@@ -424,36 +436,36 @@
             <!-- FEATURE 3: Client 360 -->
             <section id="feature-client360" class="feature-section max-w-5xl mx-auto h-full flex flex-col">
                 
-                <div class="grid grid-cols-3 gap-6 mb-8">
-                    <button class="glass p-5 rounded-2xl flex items-center gap-4 hover:border-blue-500/50 transition-all text-left group" onclick="generateBrief('Priya')">
-                        <div class="w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">PS</div>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <button class="glass p-2 md:p-5 rounded-xl md:rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-1.5 md:gap-4 hover:border-blue-500/50 transition-all text-center md:text-left group" onclick="generateBrief('Priya')">
+                        <div class="w-8 h-8 md:w-12 md:h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm md:text-xl font-bold group-hover:scale-110 transition-transform">PS</div>
                         <div>
-                            <h4 class="font-bold text-gray-100">Priya Sharma</h4>
-                            <p class="text-xs text-gray-400 flex items-center gap-1"><i class="fa-regular fa-calendar"></i> 3:00 PM Today</p>
+                            <h4 class="font-bold text-[10px] md:text-base text-gray-100 leading-tight">Priya</h4>
+                            <p class="text-[8px] md:text-xs text-gray-400 flex items-center justify-center md:justify-start gap-1 mt-0.5"><i class="fa-regular fa-clock"></i> 3 PM</p>
                         </div>
                     </button>
-                    <button class="glass p-5 rounded-2xl flex items-center gap-4 hover:border-blue-500/50 transition-all text-left group" onclick="generateBrief('Rahul')">
-                        <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">RM</div>
+                    <button class="glass p-2 md:p-5 rounded-xl md:rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-1.5 md:gap-4 hover:border-blue-500/50 transition-all text-center md:text-left group" onclick="generateBrief('Rahul')">
+                        <div class="w-8 h-8 md:w-12 md:h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm md:text-xl font-bold group-hover:scale-110 transition-transform">RM</div>
                         <div>
-                            <h4 class="font-bold text-gray-100">Rahul Mehta</h4>
-                            <p class="text-xs text-gray-400 flex items-center gap-1"><i class="fa-regular fa-calendar"></i> 11:00 AM Today</p>
+                            <h4 class="font-bold text-[10px] md:text-base text-gray-100 leading-tight">Rahul</h4>
+                            <p class="text-[8px] md:text-xs text-gray-400 flex items-center justify-center md:justify-start gap-1 mt-0.5"><i class="fa-regular fa-clock"></i> 11 AM</p>
                         </div>
                     </button>
-                    <button class="glass p-5 rounded-2xl flex items-center gap-4 hover:border-blue-500/50 transition-all text-left group" onclick="generateBrief('Anita')">
-                        <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">AD</div>
+                    <button class="glass p-2 md:p-5 rounded-xl md:rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-1.5 md:gap-4 hover:border-blue-500/50 transition-all text-center md:text-left group" onclick="generateBrief('Anita')">
+                        <div class="w-8 h-8 md:w-12 md:h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm md:text-xl font-bold group-hover:scale-110 transition-transform">AD</div>
                         <div>
-                            <h4 class="font-bold text-gray-100">Anita Desai</h4>
-                            <p class="text-xs text-gray-400 flex items-center gap-1"><i class="fa-regular fa-calendar"></i> 10:00 AM Tomorrow</p>
+                            <h4 class="font-bold text-[10px] md:text-base text-gray-100 leading-tight">Anita</h4>
+                            <p class="text-[8px] md:text-xs text-gray-400 flex items-center justify-center md:justify-start gap-1 mt-0.5"><i class="fa-regular fa-clock"></i> 10 AM</p>
                         </div>
                     </button>
                 </div>
 
-                <div class="glass p-6 rounded-2xl border border-gray-700/50 mb-6 flex gap-4 items-center shadow-lg">
+                <div class="glass p-3 md:p-6 rounded-xl md:rounded-2xl mb-4 md:mb-6 flex gap-2 md:gap-4 items-center shadow-lg">
                     <div class="flex-1 relative">
-                        <i class="fa-solid fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                        <input type="text" id="client-input" class="w-full bg-gray-900/50 border border-gray-700 rounded-xl py-3 pl-12 pr-4 text-gray-200 focus:outline-none focus:border-blue-500 transition-colors" placeholder="Or type any client name... e.g. Rahul" onkeydown="if(event.key==='Enter') document.getElementById('client-btn').click()">
+                        <i class="fa-solid fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm md:text-base"></i>
+                        <input type="text" id="client-input" class="w-full bg-gray-900/50 border border-gray-700 rounded-xl py-2 md:py-3 pl-10 md:pl-12 pr-4 text-xs md:text-sm text-gray-200 focus:outline-none focus:border-blue-500 transition-colors" placeholder="Or type client name... e.g. Rahul" onkeydown="if(event.key==='Enter') document.getElementById('client-btn').click()">
                     </div>
-                    <button id="client-btn" class="btn-primary px-6 py-3 rounded-xl font-semibold text-white flex items-center gap-2 shadow-lg" onclick="generateBrief(document.getElementById('client-input').value)">
+                    <button id="client-btn" class="btn-primary px-4 py-2 md:px-6 md:py-3 rounded-xl font-semibold text-xs md:text-sm text-white flex items-center gap-1.5 md:gap-2 shadow-lg whitespace-nowrap" onclick="generateBrief(document.getElementById('client-input').value)">
                         <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Brief
                     </button>
                 </div>
@@ -468,22 +480,22 @@
                 <div id="brief-content" class="glass flex-1 rounded-2xl p-8 border border-gray-700/50 overflow-y-auto hidden shadow-2xl relative">
                     <div class="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
                     
-                    <div class="grid grid-cols-4 gap-4 mb-8 pb-6 border-b border-gray-700/50">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8 pb-6 border-b border-gray-700/50">
                         <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Client</p>
-                            <h3 class="text-xl font-bold text-white" id="b-name">--</h3>
+                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Client</p>
+                            <h3 class="text-base md:text-xl font-bold text-white" id="b-name">--</h3>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">AUM</p>
-                            <h3 class="text-xl font-bold text-green-400" id="b-aum">--</h3>
+                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">AUM</p>
+                            <h3 class="text-base md:text-xl font-bold text-green-400" id="b-aum">--</h3>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Risk Profile</p>
-                            <h3 class="text-xl font-bold text-amber-400" id="b-risk">--</h3>
+                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Risk Profile</p>
+                            <h3 class="text-base md:text-xl font-bold text-amber-400" id="b-risk">--</h3>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Next Meeting</p>
-                            <h3 class="text-lg font-bold text-white" id="b-meeting">--</h3>
+                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Next Meeting</p>
+                            <h3 class="text-base md:text-lg font-bold text-white" id="b-meeting">--</h3>
                         </div>
                     </div>
 
@@ -506,15 +518,17 @@
             <!-- FEATURE 4: Compliance Monitor -->
             <section id="feature-compliance" class="feature-section max-w-5xl mx-auto h-full flex flex-col">
                 
-                <div class="glass p-6 rounded-2xl border border-gray-700/50 mb-6 flex gap-4 items-center shadow-lg">
-                    <button class="btn-primary flex-1 py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg text-lg" onclick="runComplianceCheck()">
+                <div class="glass p-4 md:p-6 rounded-xl md:rounded-2xl border border-gray-700/50 mb-6 flex flex-col md:flex-row gap-3 md:gap-4 items-stretch md:items-center shadow-lg">
+                    <button class="btn-primary py-2.5 md:py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg text-xs md:text-lg flex-1" onclick="runComplianceCheck()">
                         <i class="fa-solid fa-shield-cat"></i> Run Full Book Compliance Check
                     </button>
-                    <div class="text-center px-4 font-bold text-gray-500">OR</div>
+                    <div class="text-center font-bold text-gray-500 text-xs md:text-base py-1 md:py-0">OR</div>
                     <div class="flex-1 flex gap-2 relative">
-                        <i class="fa-solid fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                        <input type="text" id="comp-client-input" class="w-full bg-gray-900/50 border border-gray-700 rounded-xl py-4 pl-12 pr-4 text-gray-200 focus:outline-none focus:border-blue-500 transition-colors" placeholder="Check specific client..." onkeydown="if(event.key==='Enter') document.getElementById('comp-btn').click()">
-                        <button id="comp-btn" class="btn-secondary px-6 py-4 rounded-xl font-semibold text-white flex items-center gap-2 whitespace-nowrap" onclick="runComplianceCheck(document.getElementById('comp-client-input').value)">
+                        <div class="flex-1 relative">
+                            <i class="fa-solid fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs md:text-sm"></i>
+                            <input type="text" id="comp-client-input" class="w-full bg-gray-900/50 border border-gray-700 rounded-xl py-2.5 md:py-4 pl-10 md:pl-12 pr-4 text-xs md:text-sm text-gray-200 focus:outline-none focus:border-blue-500 transition-colors" placeholder="Check specific client..." onkeydown="if(event.key==='Enter') document.getElementById('comp-btn').click()">
+                        </div>
+                        <button id="comp-btn" class="btn-secondary px-4 py-2.5 md:px-6 md:py-4 rounded-xl font-semibold text-xs md:text-sm text-white flex items-center gap-1.5 md:gap-2 whitespace-nowrap font-bold" onclick="runComplianceCheck(document.getElementById('comp-client-input').value)">
                             Check Client
                         </button>
                     </div>
@@ -530,23 +544,23 @@
                 <div id="comp-results" class="hidden flex-col gap-6 h-full overflow-hidden">
                     
                     <!-- Summary Metrics -->
-                    <div class="grid grid-cols-4 gap-4">
-                        <div class="glass p-5 rounded-2xl border border-gray-700/50">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Clients Checked</p>
-                            <h3 class="text-3xl font-bold text-white" id="c-total">0</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                        <div class="glass p-3 md:p-5 rounded-2xl border border-gray-700/50">
+                            <p class="text-[9px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Clients Checked</p>
+                            <h3 class="text-xl md:text-3xl font-bold text-white" id="c-total">0</h3>
                         </div>
-                        <div class="glass p-5 rounded-2xl border border-gray-700/50">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Violations</p>
-                            <h3 class="text-3xl font-bold text-amber-400" id="c-violations">0</h3>
+                        <div class="glass p-3 md:p-5 rounded-2xl border border-gray-700/50">
+                            <p class="text-[9px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Total Violations</p>
+                            <h3 class="text-xl md:text-3xl font-bold text-amber-400" id="c-violations">0</h3>
                         </div>
-                        <div class="glass p-5 rounded-2xl border border-red-500/30 bg-red-900/10 relative overflow-hidden">
+                        <div class="glass p-3 md:p-5 rounded-2xl border border-red-500/30 bg-red-900/10 relative overflow-hidden">
                             <div class="absolute right-0 top-0 w-16 h-16 bg-red-500/20 rounded-bl-full"></div>
-                            <p class="text-xs text-red-300 uppercase tracking-wider mb-1">High Severity</p>
-                            <h3 class="text-3xl font-bold text-red-500" id="c-high">0</h3>
+                            <p class="text-[9px] md:text-xs text-red-300 uppercase tracking-wider mb-1 relative z-10">High Severity</p>
+                            <h3 class="text-xl md:text-3xl font-bold text-red-500 relative z-10" id="c-high">0</h3>
                         </div>
-                        <div class="glass p-5 rounded-2xl border border-gray-700/50">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Checked At</p>
-                            <h3 class="text-sm font-bold text-gray-300 mt-2" id="c-time">--</h3>
+                        <div class="glass p-3 md:p-5 rounded-2xl border border-gray-700/50">
+                            <p class="text-[9px] md:text-xs text-gray-500 uppercase tracking-wider mb-1">Checked At</p>
+                            <h3 class="text-xs md:text-sm font-bold text-gray-300 mt-2" id="c-time">--</h3>
                         </div>
                     </div>
 
@@ -561,44 +575,44 @@
             
             <!-- FEATURE 5: AI Observability -->
             <section id="feature-observability" class="feature-section max-w-5xl mx-auto h-full flex flex-col hidden">
-                <div class="glass p-6 rounded-2xl border border-gray-700/50 mb-6 flex gap-4 items-center shadow-lg">
-                    <button class="btn-primary flex-1 py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg text-lg" onclick="loadObservability()">
+                <div class="glass p-3.5 md:p-6 rounded-xl md:rounded-2xl mb-4 md:mb-6 flex gap-4 items-center shadow-lg">
+                    <button class="btn-primary flex-1 py-2.5 md:py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 shadow-lg text-xs md:text-lg" onclick="loadObservability()">
                         <i class="fa-solid fa-satellite-dish"></i> Load Live Metrics from AWS
                     </button>
                 </div>
 
                 <div id="obs-loader" class="glass flex-1 rounded-2xl p-12 flex flex-col items-center justify-center hidden">
                     <div class="loader mb-4 w-10 h-10"></div>
-                    <p class="text-blue-400 font-medium">Fetching metrics from AWS DynamoDB...</p>
+                    <p class="text-blue-400 font-medium text-xs md:text-sm">Fetching metrics from AWS DynamoDB...</p>
                 </div>
 
-                <div id="obs-results" class="hidden flex-col gap-6">
+                <div id="obs-results" class="hidden flex-col gap-4 md:gap-6">
                     <!-- Summary Cards -->
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div class="glass p-5 rounded-2xl border border-blue-500/30 bg-blue-900/10">
-                            <p class="text-xs text-blue-300 uppercase tracking-wider mb-1">Total API Calls</p>
-                            <h3 class="text-3xl font-bold text-white" id="obs-calls">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Since deployment</p>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-4">
+                        <div class="glass p-3 md:p-5 rounded-xl md:rounded-2xl border border-blue-500/30 bg-blue-900/10">
+                            <p class="text-[9px] md:text-xs text-blue-300 uppercase tracking-wider mb-0.5 md:mb-1">Total API Calls</p>
+                            <h3 class="text-base md:text-3xl font-bold text-white" id="obs-calls">0</h3>
+                            <p class="text-[8px] md:text-xs text-gray-500 mt-0.5">Since deployment</p>
                         </div>
-                        <div class="glass p-5 rounded-2xl border border-purple-500/30 bg-purple-900/10">
-                            <p class="text-xs text-purple-300 uppercase tracking-wider mb-1">Total Tokens Used</p>
-                            <h3 class="text-3xl font-bold text-white" id="obs-tokens">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Input + Output combined</p>
+                        <div class="glass p-3 md:p-5 rounded-xl md:rounded-2xl border border-purple-500/30 bg-purple-900/10">
+                            <p class="text-[9px] md:text-xs text-purple-300 uppercase tracking-wider mb-0.5 md:mb-1">Total Tokens Used</p>
+                            <h3 class="text-base md:text-3xl font-bold text-white" id="obs-tokens">0</h3>
+                            <p class="text-[8px] md:text-xs text-gray-500 mt-0.5">Input + Output combined</p>
                         </div>
-                        <div class="glass p-5 rounded-2xl border border-green-500/30 bg-green-900/10">
-                            <p class="text-xs text-green-300 uppercase tracking-wider mb-1">Total Cost (USD)</p>
-                            <h3 class="text-3xl font-bold text-green-400" id="obs-cost">$0</h3>
-                            <p class="text-xs text-gray-500 mt-1" id="obs-cost-inr">₹0</p>
+                        <div class="glass p-3 md:p-5 rounded-xl md:rounded-2xl border border-green-500/30 bg-green-900/10">
+                            <p class="text-[9px] md:text-xs text-green-300 uppercase tracking-wider mb-0.5 md:mb-1">Total Cost (USD)</p>
+                            <h3 class="text-base md:text-3xl font-bold text-green-400" id="obs-cost">$0</h3>
+                            <p class="text-[8px] md:text-xs text-gray-500 mt-0.5" id="obs-cost-inr">₹0</p>
                         </div>
-                        <div class="glass p-5 rounded-2xl border border-amber-500/30 bg-amber-900/10">
-                            <p class="text-xs text-amber-300 uppercase tracking-wider mb-1">Avg Latency</p>
-                            <h3 class="text-3xl font-bold text-amber-400" id="obs-latency">0ms</h3>
-                            <p class="text-xs text-gray-500 mt-1">Per Bedrock call</p>
+                        <div class="glass p-3 md:p-5 rounded-xl md:rounded-2xl border border-amber-500/30 bg-amber-900/10">
+                            <p class="text-[9px] md:text-xs text-amber-300 uppercase tracking-wider mb-0.5 md:mb-1">Avg Latency</p>
+                            <h3 class="text-base md:text-3xl font-bold text-amber-400" id="obs-latency">0ms</h3>
+                            <p class="text-[8px] md:text-xs text-gray-500 mt-0.5">Per Bedrock call</p>
                         </div>
-                        <div class="glass p-5 rounded-2xl border border-gray-700/50 col-span-2">
-                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Model</p>
-                            <h3 class="text-sm font-bold text-white" id="obs-model">--</h3>
-                            <p class="text-xs text-gray-500 mt-1">Amazon Bedrock — Llama 3.1 8B Instruct</p>
+                        <div class="glass p-3 md:p-5 rounded-xl md:rounded-2xl border border-gray-700/50 col-span-2">
+                            <p class="text-[9px] md:text-xs text-gray-400 uppercase tracking-wider mb-0.5 md:mb-1">Model</p>
+                            <h3 class="text-xs md:text-sm font-bold text-white" id="obs-model">--</h3>
+                            <p class="text-[8px] md:text-xs text-gray-500 mt-0.5">Amazon Bedrock — Llama 3.1 8B Instruct</p>
                         </div>
                     </div>
 
@@ -635,12 +649,12 @@
             
             <!-- FEATURE 6: Supervision Queue -->
             <section id="feature-supervision" class="feature-section max-w-5xl mx-auto h-full flex flex-col hidden">
-                <div class="glass p-6 rounded-2xl border border-gray-700/50 mb-6 flex gap-4 items-center shadow-lg">
+                <div class="glass p-3.5 md:p-6 rounded-xl md:rounded-2xl mb-4 md:mb-6 flex gap-4 items-center justify-between shadow-lg">
                     <div class="flex-1">
-                        <h3 class="text-xl font-bold text-white">Pending Human Review</h3>
-                        <p class="text-sm text-gray-400">Critical AI recommendations requiring supervisor approval.</p>
+                        <h3 class="text-sm md:text-xl font-bold text-white">Pending Human Review</h3>
+                        <p class="text-[10px] md:text-sm text-gray-400 leading-tight">Critical AI recommendations requiring supervisor approval.</p>
                     </div>
-                    <button class="btn-primary px-6 py-3 rounded-xl font-bold text-white flex items-center gap-2 shadow-lg" onclick="loadSupervisionQueue()">
+                    <button class="btn-primary px-3 py-2 md:px-6 md:py-3 rounded-xl font-bold text-white flex items-center gap-1.5 md:gap-2 shadow-lg text-xs md:text-sm whitespace-nowrap" onclick="loadSupervisionQueue()">
                         <i class="fa-solid fa-rotate"></i> Refresh Queue
                     </button>
                 </div>
@@ -663,28 +677,28 @@
             
             <!-- FEATURE 8: Portfolio Simulator -->
             <section id="feature-simulator" class="feature-section h-full flex flex-col max-w-6xl mx-auto">
-                <div class="glass p-6 rounded-2xl mb-8 flex flex-col gap-4">
-                    <div class="flex items-end gap-4">
+                <div class="glass p-4 md:p-6 rounded-xl md:rounded-2xl mb-6 md:mb-8">
+                    <div class="flex flex-col md:flex-row items-stretch md:items-end gap-3 md:gap-4">
                         <div class="flex-1">
-                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Select Client</label>
-                            <select id="sim-client-select" class="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 appearance-none">
+                            <label class="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 md:mb-2 block">Select Client</label>
+                            <select id="sim-client-select" class="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-2.5 md:py-3 focus:outline-none focus:border-blue-500 appearance-none text-xs md:text-sm">
                                 <option value="Priya Sharma">Priya Sharma</option>
                                 <option value="Rahul Mehta">Rahul Mehta</option>
                                 <option value="Anita Desai">Anita Desai</option>
                             </select>
                         </div>
                         <div class="flex-[3]">
-                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Describe Scenario (What-If?)</label>
-                            <input type="text" id="sim-scenario-input" placeholder="e.g., Move 20% from Equity to Fixed Income and increase Cash by 5%" class="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500">
+                            <label class="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 md:mb-2 block">Describe Scenario (What-If?)</label>
+                            <input type="text" id="sim-scenario-input" placeholder="e.g., Move 20% from Equity to Fixed Income..." class="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-2.5 md:py-3 focus:outline-none focus:border-blue-500 text-xs md:text-sm">
                         </div>
-                        <button onclick="runSimulation()" id="sim-btn" class="btn-primary h-[50px] px-8 rounded-xl font-bold flex items-center gap-2">
+                        <button onclick="runSimulation()" id="sim-btn" class="btn-primary py-2.5 md:py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 text-xs md:text-sm h-[40px] md:h-[50px] shadow-lg">
                             <i class="fa-solid fa-play"></i> Run Simulation
                         </button>
                     </div>
                 </div>
 
                 <div id="sim-results" class="hidden">
-                    <div class="grid grid-cols-2 gap-8 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8">
                         <!-- Current Portfolio -->
                         <div class="glass p-6 rounded-2xl border-l-4 border-gray-500">
                             <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
@@ -727,17 +741,17 @@
             <!-- FEATURE 10: Revenue Enablement -->
             <section id="feature-revenue" class="feature-section h-full flex flex-col max-w-6xl mx-auto">
                 <!-- Input Panel -->
-                <div class="glass p-6 rounded-2xl mb-8">
-                    <div class="flex items-end gap-4">
+                <div class="glass p-4 md:p-6 rounded-xl md:rounded-2xl mb-6 md:mb-8">
+                    <div class="flex flex-col md:flex-row items-stretch md:items-end gap-3 md:gap-4">
                         <div class="flex-1">
-                            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Select Client</label>
-                            <select id="rev-client-select" class="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-green-500 appearance-none">
+                            <label class="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 md:mb-2 block">Select Client</label>
+                            <select id="rev-client-select" class="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-2.5 md:py-3 focus:outline-none focus:border-green-500 appearance-none text-xs md:text-sm">
                                 <option value="Priya Sharma">Priya Sharma</option>
                                 <option value="Rahul Mehta">Rahul Mehta</option>
                                 <option value="Anita Desai">Anita Desai</option>
                             </select>
                         </div>
-                        <button onclick="generateRevenue()" id="rev-btn" class="btn-primary h-[50px] px-8 rounded-xl font-bold flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500">
+                        <button onclick="generateRevenue()" id="rev-btn" class="btn-primary py-2.5 md:py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-xs md:text-sm h-[40px] md:h-[50px] shadow-lg">
                             <i class="fa-solid fa-sack-dollar"></i> Generate Opportunities
                         </button>
                     </div>
@@ -750,7 +764,7 @@
                         <!-- Injected by JS -->
                     </div>
                     <!-- Opportunity Cards Grid -->
-                    <div id="rev-cards" class="grid grid-cols-2 gap-6">
+                    <div id="rev-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <!-- Injected by JS -->
                     </div>
                 </div>
