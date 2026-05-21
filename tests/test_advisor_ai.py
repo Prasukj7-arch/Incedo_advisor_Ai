@@ -372,3 +372,34 @@ class TestSimulator:
             self.PORTFOLIO, None, None, self.CORS
         )
         assert result["statusCode"] == 404
+
+
+# ── Live Market Data & Chat Context Integration Tests ─────────────────────────
+
+class TestLiveMarketData:
+    """Test yfinance index fetching and chat query injection."""
+
+    @patch('yfinance.Ticker')
+    def test_get_live_market_context_success(self, mock_ticker):
+        from fast_app import get_live_market_context
+        # Mock fast_info values
+        mock_info = MagicMock()
+        mock_info.last_price = 24653.21
+        mock_info.previous_close = 24350.10
+        mock_ticker.return_value.fast_info = mock_info
+
+        context = get_live_market_context()
+        assert "[LIVE INDIAN MARKET DATA]" in context
+        assert "Nifty 50" in context
+        assert "24,653.21" in context
+        assert "+1.24%" in context
+
+    @patch('yfinance.Ticker')
+    def test_get_live_market_context_failure(self, mock_ticker):
+        from fast_app import get_live_market_context
+        mock_ticker.side_effect = Exception("Ticker error")
+
+        context = get_live_market_context()
+        assert "[LIVE INDIAN MARKET DATA]" in context
+        assert "Temporarily unavailable" in context
+
