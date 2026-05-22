@@ -390,6 +390,76 @@ def api_market(username: str = Depends(verify_credentials)):
     return {"indices": results}
 
 
+@app.get("/api/life-events")
+def api_life_events(username: str = Depends(verify_credentials)):
+    """Fetch structured proactive life events from clients.json to alert the advisor."""
+    import json
+    try:
+        with open("data/clients.json", "r") as f:
+            data = json.load(f)
+        
+        raw_clients = data.get("clients", [])
+        events = []
+        
+        # Event-specific professional mapping
+        event_actions_map = {
+            "Recently widowed": {
+                "category": "Urgent Care",
+                "severity": "danger",
+                "action": "Immediate outreach: compliance check on account ownership change & capital preservation review."
+            },
+            "Getting married in Dec 2025": {
+                "category": "Tax & Planning",
+                "severity": "warning",
+                "action": "Prepare Wedding Fund SIP and schedule tax optimization review."
+            },
+            "Daughter starting college in 2026": {
+                "category": "Education Funding",
+                "severity": "info",
+                "action": "Review and reallocate Daughter Education Fund."
+            },
+            "Recent liquidity event from startup funding round": {
+                "category": "Liquidity Event",
+                "severity": "warning",
+                "action": "Fresh capital deployment review: schedule ESOP & wealth accumulation advisory."
+            },
+            "Planning home purchase in 2027": {
+                "category": "Real Estate",
+                "severity": "info",
+                "action": "Assess mortgage suitability and structured equity withdrawal options."
+            },
+            "Son settled abroad": {
+                "category": "Estate Planning",
+                "severity": "info",
+                "action": "Discuss NRI tax implications and update beneficiary designations."
+            }
+        }
+        
+        for client in raw_clients:
+            c_id = client.get("id")
+            for event in client.get("life_events", []):
+                map_info = event_actions_map.get(event, {
+                    "category": "General",
+                    "severity": "info",
+                    "action": "Schedule client touchpoint to discuss updates."
+                })
+                events.append({
+                    "client_id": c_id,
+                    "client_name": client.get("name"),
+                    "event": event,
+                    "category": map_info["category"],
+                    "severity": map_info["severity"],
+                    "action": map_info["action"]
+                })
+        
+        severity_order = {"danger": 0, "warning": 1, "info": 2}
+        events.sort(key=lambda x: severity_order.get(x["severity"], 3))
+        
+        return {"events": events}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     # pyrefly: ignore [missing-import]
     import uvicorn

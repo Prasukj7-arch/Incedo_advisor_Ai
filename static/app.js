@@ -693,10 +693,71 @@ async function loadMarketData() {
     }
 }
 
+// Fetch and render proactive life-event alerts
+async function loadLifeEvents() {
+    const section = document.getElementById('life-events-alerts-section');
+    const container = document.getElementById('life-events-alerts-container');
+    if (!section || !container) return;
+
+    try {
+        const response = await fetch('/api/life-events');
+        if (!response.ok) throw new Error("HTTP error " + response.status);
+        const data = await response.json();
+        
+        if (data.events && data.events.length > 0) {
+            section.classList.remove('hidden');
+            container.innerHTML = '';
+            
+            data.events.forEach(alert => {
+                let borderClass = 'border-blue-500/20 bg-blue-500/5 text-blue-400';
+                let iconClass = 'fa-circle-info text-blue-400';
+                let titleColor = 'text-blue-400';
+                let pulseRing = '';
+                
+                if (alert.severity === 'danger') {
+                    borderClass = 'border-red-500/30 bg-red-500/5 text-red-400';
+                    iconClass = 'fa-circle-exclamation text-red-400';
+                    titleColor = 'text-red-400';
+                    pulseRing = '<span class="absolute top-1 right-1 flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span></span>';
+                } else if (alert.severity === 'warning') {
+                    borderClass = 'border-amber-500/30 bg-amber-500/5 text-amber-400';
+                    iconClass = 'fa-triangle-exclamation text-amber-400';
+                    titleColor = 'text-amber-400';
+                }
+                
+                container.innerHTML += `
+                    <div class="glass p-5 rounded-2xl border ${borderClass} transition-all hover:scale-[1.01] relative overflow-hidden">
+                        ${pulseRing}
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 flex-shrink-0">
+                                <i class="fa-solid ${iconClass} text-base"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-center mb-1.5 gap-2">
+                                    <span class="text-[10px] font-bold uppercase tracking-widest ${titleColor} truncate">${alert.client_name}</span>
+                                    <span class="text-[8px] bg-white/5 px-2 py-0.5 rounded text-gray-400 font-mono flex-shrink-0 uppercase">${alert.category}</span>
+                                </div>
+                                <h4 class="text-sm font-semibold text-white mb-1.5 leading-snug">${alert.event}</h4>
+                                <p class="text-[11px] text-gray-300 leading-relaxed"><strong class="${titleColor}">Action:</strong> ${alert.action}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            section.classList.add('hidden');
+        }
+    } catch (err) {
+        console.error("Failed to load life-event alerts:", err);
+        section.classList.add('hidden');
+    }
+}
+
 // Check status on load and every 30 seconds
 checkSystemStatus();
 loadDashboard();
 loadMarketData();
+loadLifeEvents();
 setInterval(checkSystemStatus, 30000);
 setInterval(loadDashboard, 21600000); // Refresh dashboard every 6 hours (cost control)
 setInterval(loadMarketData, 300000); // Refresh market ticker every 5 minutes
