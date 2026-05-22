@@ -637,11 +637,69 @@ async function loadDashboard() {
     }
 }
 
+async function loadMarketData() {
+    const contentContainer = document.getElementById('market-ticker-content');
+    const timeContainer = document.getElementById('market-ticker-time');
+    try {
+        const response = await fetch('/api/market');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data && data.indices) {
+            contentContainer.innerHTML = '';
+            let hasValidData = false;
+            data.indices.forEach(index => {
+                if (index.price !== null) {
+                    hasValidData = true;
+                    const changeVal = index.change_pct;
+                    const sign = changeVal >= 0 ? '+' : '';
+                    const isUp = changeVal >= 0;
+                    const colorClass = isUp ? 'text-emerald-400' : 'text-rose-400';
+                    const iconClass = isUp ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+                    const bgClass = isUp ? 'bg-emerald-500/10' : 'bg-rose-500/10';
+                    const borderClass = isUp ? 'border-emerald-500/10' : 'border-rose-500/10';
+                    
+                    contentContainer.innerHTML += `
+                        <div class="flex items-center gap-2 bg-slate-900/40 px-3 py-1.5 rounded-xl border border-white/5 transition-all hover:scale-[1.02]">
+                            <span class="text-xs font-bold text-gray-300">${index.name}</span>
+                            <span class="text-xs font-semibold text-white font-mono">${index.price.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            <span class="flex items-center gap-1 text-[10px] font-bold ${colorClass} ${bgClass} px-1.5 py-0.5 rounded border ${borderClass}">
+                                <i class="fa-solid ${iconClass}"></i> ${sign}${changeVal.toFixed(2)}%
+                            </span>
+                        </div>
+                    `;
+                    timeContainer.textContent = index.fetched_at;
+                } else {
+                    contentContainer.innerHTML += `
+                        <div class="flex items-center gap-2 bg-slate-900/40 px-3 py-1.5 rounded-xl border border-white/5 opacity-50">
+                            <span class="text-xs font-bold text-gray-400">${index.name}</span>
+                            <span class="text-xs font-semibold text-gray-500 font-mono">Offline</span>
+                        </div>
+                    `;
+                }
+            });
+            if (!hasValidData) {
+                contentContainer.innerHTML = '<span class="text-xs text-gray-500">Live feed temporarily paused.</span>';
+            }
+        }
+    } catch (err) {
+        console.error("Market data error:", err);
+        contentContainer.innerHTML = `
+            <span class="text-xs text-rose-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation"></i> Live feed connection error
+            </span>
+        `;
+    }
+}
+
 // Check status on load and every 30 seconds
 checkSystemStatus();
 loadDashboard();
+loadMarketData();
 setInterval(checkSystemStatus, 30000);
 setInterval(loadDashboard, 21600000); // Refresh dashboard every 6 hours (cost control)
+setInterval(loadMarketData, 300000); // Refresh market ticker every 5 minutes
 
 // -----------------------------------------------------------
 // FEATURE 5: AI Observability

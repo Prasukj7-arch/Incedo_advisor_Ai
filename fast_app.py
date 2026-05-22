@@ -2,6 +2,8 @@ import os
 import secrets
 import requests
 import boto3
+import yfinance as yf
+from datetime import datetime
 from typing import Optional
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
@@ -87,9 +89,40 @@ class SupervisionActionRequest(BaseModel):
     notes: str
 
 # ── API endpoints (all protected) ─────────────────────────────────────────────
+def get_live_market_context() -> str:
+    """Fetch live prices of Nifty 50, Sensex, and Nifty Bank using yfinance."""
+    INDICES = {
+        "Nifty 50":   "^NSEI",
+        "Sensex":     "^BSESN",
+        "Nifty Bank": "^NSEBANK",
+    }
+    lines = ["[LIVE INDIAN MARKET DATA]"]
+    for name, symbol in INDICES.items():
+        try:
+            info = yf.Ticker(symbol).fast_info
+            price = round(float(info.last_price), 2)
+            prev  = round(float(info.previous_close), 2)
+            change_pct = round((price - prev) / prev * 100, 2)
+            sign = "+" if change_pct >= 0 else ""
+            lines.append(f"- {name} ({symbol}): {price:,.2f} ({sign}{change_pct}%)")
+        except Exception as e:
+            lines.append(f"- {name} ({symbol}): Temporarily unavailable ({str(e)})")
+    return "\n".join(lines)
+
+
 @app.post("/api/chat")
 def api_chat(req: ChatRequest, username: str = Depends(verify_credentials)):
     try:
+        # Check if the query is market-related to inject live context
+        q_lower = req.question.lower()
+        market_keywords = ["market", "nifty", "sensex", "nifty bank", "index", "indices", "stock", "share", "today's performance"]
+        if any(keyword in q_lower for keyword in market_keywords):
+            try:
+                context_str = get_live_market_context()
+                req.question = f"{req.question}\n\n{context_str}"
+            except Exception as e:
+                print(f"Error injecting market context: {e}")
+
         response = requests.post(
             f"{API_BASE}/chat",
             headers=HEADERS,
@@ -103,6 +136,7 @@ def api_chat(req: ChatRequest, username: str = Depends(verify_credentials)):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/api/rag")
 def api_rag(req: RagRequest, username: str = Depends(verify_credentials)):
@@ -319,6 +353,42 @@ def take_supervision_action(req: SupervisionActionRequest, username: str = Depen
         return {"status": "success", "review_id": req.review_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/market")
+def api_market(username: str = Depends(verify_credentials)):
+    """Fetch live Indian market indices using yfinance — no API key required."""
+    INDICES = {
+        "Nifty 50":   "^NSEI",
+        "Sensex":     "^BSESN",
+        "Nifty Bank": "^NSEBANK",
+    }
+    results = []
+    for name, symbol in INDICES.items():
+        try:
+            info = yf.Ticker(symbol).fast_info
+            price = round(float(info.last_price), 2)
+            prev  = round(float(info.previous_close), 2)
+            change_pct = round((price - prev) / prev * 100, 2)
+            results.append({
+                "name":       name,
+                "symbol":     symbol,
+                "price":      price,
+                "change_pct": change_pct,
+                "direction":  "up" if change_pct >= 0 else "down",
+                "fetched_at": datetime.utcnow().strftime("%H:%M UTC"),
+            })
+        except Exception as e:
+            results.append({
+                "name":       name,
+                "symbol":     symbol,
+                "price":      None,
+                "change_pct": None,
+                "direction":  "neutral",
+                "error":      str(e),
+                "fetched_at": datetime.utcnow().strftime("%H:%M UTC"),
+            })
+    return {"indices": results}
+
 
 if __name__ == "__main__":
     # pyrefly: ignore [missing-import]
