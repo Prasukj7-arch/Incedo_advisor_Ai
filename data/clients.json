@@ -1,0 +1,61 @@
+{
+  "clients": [
+    {
+      "id": "C001",
+      "name": "Priya Sharma",
+      "age": 42,
+      "occupation": "Senior Software Engineer at Infosys",
+      "risk_profile": "Moderate",
+      "aum": 850000,
+      "since": "2019-06-01",
+      "last_meeting": "2025-03-12",
+      "next_meeting": "2025-05-15 15:00",
+      "email": "priya.sharma@email.com",
+      "phone": "+91-98765-43210",
+      "life_events": ["Daughter starting college in 2026", "Planning home purchase in 2027"],
+      "goals": ["Daughter education fund", "Retirement at 58", "Home purchase"],
+      "concerns": ["Market volatility", "Inflation impact on fixed income"],
+      "last_interaction_notes": "Discussed rebalancing equity exposure. Concerned about US tech valuations.",
+      "cross_sell_opportunities": ["Term Life Insurance", "NPS top-up", "SIP increase"],
+      "compliance_flags": []
+    },
+    {
+      "id": "C002",
+      "name": "Rahul Mehta",
+      "age": 35,
+      "occupation": "Co-founder, TechStartup Pvt Ltd",
+      "risk_profile": "Aggressive",
+      "aum": 2100000,
+      "since": "2021-01-15",
+      "last_meeting": "2025-04-02",
+      "next_meeting": "2025-05-09 11:00",
+      "email": "rahul.mehta@techstartup.com",
+      "phone": "+91-99887-76655",
+      "life_events": ["Recent liquidity event from startup funding round", "Getting married in Dec 2025"],
+      "goals": ["Wealth accumulation", "International diversification", "Tax optimization"],
+      "concerns": ["Concentration risk in tech", "Currency exposure"],
+      "last_interaction_notes": "Post Series-B funding, has fresh capital to deploy. Interested in global ETFs.",
+      "cross_sell_opportunities": ["Global ETF Portfolio", "ESOP planning", "Wedding fund SIP"],
+      "compliance_flags": ["Large cash inflow - KYC refresh required"]
+    },
+    {
+      "id": "C003",
+      "name": "Anita Desai",
+      "age": 62,
+      "occupation": "Retired (Former HR Director)",
+      "risk_profile": "Conservative",
+      "aum": 450000,
+      "since": "2015-08-20",
+      "last_meeting": "2025-02-28",
+      "next_meeting": "2025-05-20 10:00",
+      "email": "anita.desai@gmail.com",
+      "phone": "+91-97654-32109",
+      "life_events": ["Recently widowed", "Son settled abroad"],
+      "goals": ["Capital preservation", "Regular income", "Medical emergency fund"],
+      "concerns": ["Outliving savings", "Rising healthcare costs", "Liquidity"],
+      "last_interaction_notes": "Discussed increasing fixed income allocation. Wants monthly income stream.",
+      "cross_sell_opportunities": ["Senior Citizen Savings Scheme", "Health Insurance top-up", "Monthly Income Plan"],
+      "compliance_flags": []
+    }
+  ]
+}

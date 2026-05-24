@@ -18,7 +18,7 @@ htmlcov/
 Icon
 
 # Data
-data/
+# data/
 *.log
 
 .venv/

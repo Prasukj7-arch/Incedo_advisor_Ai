@@ -1,0 +1,67 @@
+{
+  "clients": [
+    {
+      "id": "C001",
+      "name": "Priya Sharma",
+      "risk_profile": "Moderate",
+      "aum": 850000,
+      "portfolio": {
+        "equity": {"allocation": 55, "value": 467500, "day_change": 1.2},
+        "fixed_income": {"allocation": 30, "value": 255000, "day_change": -0.3},
+        "cash": {"allocation": 10, "value": 85000, "day_change": 0},
+        "alternatives": {"allocation": 5, "value": 42500, "day_change": 0.8}
+      },
+      "top_holdings": [
+        {"ticker": "AAPL", "value": 95000, "day_change": 2.1},
+        {"ticker": "MSFT", "value": 88000, "day_change": 0.9},
+        {"ticker": "GOOGL", "value": 72000, "day_change": 1.4},
+        {"ticker": "HDFC Bank", "value": 65000, "day_change": -0.5},
+        {"ticker": "Infosys", "value": 58000, "day_change": 1.8}
+      ],
+      "ytd_return": 12.4,
+      "last_rebalanced": "2025-02-15"
+    },
+    {
+      "id": "C002",
+      "name": "Rahul Mehta",
+      "risk_profile": "Aggressive",
+      "aum": 2100000,
+      "portfolio": {
+        "equity": {"allocation": 80, "value": 1680000, "day_change": 2.3},
+        "fixed_income": {"allocation": 10, "value": 210000, "day_change": -0.1},
+        "cash": {"allocation": 5, "value": 105000, "day_change": 0},
+        "alternatives": {"allocation": 5, "value": 105000, "day_change": 1.5}
+      },
+      "top_holdings": [
+        {"ticker": "NVDA", "value": 320000, "day_change": 3.8},
+        {"ticker": "TSLA", "value": 280000, "day_change": -1.2},
+        {"ticker": "META", "value": 240000, "day_change": 2.6},
+        {"ticker": "AMZN", "value": 195000, "day_change": 1.1},
+        {"ticker": "TCS", "value": 180000, "day_change": 0.7}
+      ],
+      "ytd_return": 22.7,
+      "last_rebalanced": "2025-03-01"
+    },
+    {
+      "id": "C003",
+      "name": "Anita Desai",
+      "risk_profile": "Conservative",
+      "aum": 450000,
+      "portfolio": {
+        "equity": {"allocation": 25, "value": 112500, "day_change": 0.4},
+        "fixed_income": {"allocation": 60, "value": 270000, "day_change": -0.2},
+        "cash": {"allocation": 12, "value": 54000, "day_change": 0},
+        "alternatives": {"allocation": 3, "value": 13500, "day_change": 0.2}
+      },
+      "top_holdings": [
+        {"ticker": "Govt Bond 2030", "value": 120000, "day_change": -0.1},
+        {"ticker": "SBI Fixed Deposit", "value": 90000, "day_change": 0},
+        {"ticker": "Reliance", "value": 55000, "day_change": 0.6},
+        {"ticker": "Gold ETF", "value": 45000, "day_change": 0.3},
+        {"ticker": "HDFC Balanced Fund", "value": 40000, "day_change": 0.2}
+      ],
+      "ytd_return": 6.1,
+      "last_rebalanced": "2025-01-20"
+    }
+  ]
+}
