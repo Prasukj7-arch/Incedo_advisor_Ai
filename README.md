@@ -313,56 +313,95 @@ The Executive Dashboard now surfaces **6 proactive, colour-coded alert cards** t
 
 ## Architecture
 
-![Architecture Diagram](./Architecture_Diagram.png)
-```
-Evaluator / Advisor Browser
-        |
-        v
-https://strained-aletha-easeled.ngrok-free.dev  (HTTPS — permanent)
-        |
-        v
-ngrok tunnel → EC2:8080
-        |
-        v
-FastAPI Server (fast_app.py) ← HTTP Basic Auth
-        |
-        ├── /api/chat ──────────────→ API Gateway → Lambda → Bedrock (Llama 3.1)
-        |                                                  ↕           ↕
-        |                                           DynamoDB       Compliance Engine
-        |                                           (sessions)     → Supervision Queue
-        |
-        ├── /api/rag ───────────────→ RAG Server (EC2:8000)
-        |                                   ↕
-        |                              ChromaDB (29 chunks)
-        |                                   ↕
-        |                         Bedrock (Llama 3.1) + Metrics → DynamoDB
-        |
-        ├── /api/client360 ──────────→ API Gateway → Lambda → Bedrock
-        |                                                  ↕
-        |                                        Supervision Queue (if flagged)
-        |
-        ├── /api/compliance ─────────→ Local Rule Engine → CloudWatch Logs
-        |
-        ├── /api/simulate ────────────→ API Gateway → Lambda → Bedrock (scenario engine)
-        |
-        ├── /api/dashboard ───────────→ API Gateway → Lambda → Bedrock (proactive insights)
-        |                                                  ↕
-        |                                           DynamoDB (book aggregation)
-        |
-        ├── /api/revenue ────────────→ API Gateway → Lambda → Bedrock (cross-sell engine)
-        |                                                 ↕
-        |                                    CLIENT_DATA + PORTFOLIO_DATA (dual lookup)
-        |
-        ├── /api/observability ───────→ DynamoDB scan → advisor-ai-metrics
-        |
-        ├── /api/supervision/pending ─→ DynamoDB scan → advisor-ai-supervision
-        ├── /api/supervision/action ──→ DynamoDB update → CloudWatch audit log
-        |
-        ├── /api/market ─────────────→ yfinance (Yahoo Finance) → Nifty 50, Sensex, Nifty Bank
-        |                               (no API key required — live prices every 5 min)
-        |
-        └── /api/life-events ─────────→ data/clients.json → structured alert payloads
-                                        (6 events, severity-sorted: danger > warning > info)
+```mermaid
+graph TD
+    %% Define Styles
+    classDef user fill:#2563eb,stroke:#1e40af,stroke-width:2px,color:#fff;
+    classDef frontend fill:#0891b2,stroke:#164e63,stroke-width:2px,color:#fff;
+    classDef api fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff;
+    classDef compute fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff;
+    classDef data fill:#8b5cf6,stroke:#5b21b6,stroke-width:2px,color:#fff;
+    classDef ai fill:#ec4899,stroke:#be185d,stroke-width:2px,color:#fff;
+    classDef external fill:#64748b,stroke:#334155,stroke-width:2px,color:#fff;
+
+    %% Client Layer
+    User(("Advisor<br/>(Browser)")):::user
+    
+    %% Presentation Layer
+    subgraph Presentation_Layer ["Presentation & Security Layer"]
+        Ngrok["ngrok HTTPS Tunnel<br/>(strained-aletha-easeled)"]:::external
+        FastAPI["FastAPI Web Server<br/>(EC2 :8080)<br/>HTTP Basic Auth"]:::frontend
+    end
+    
+    User <-->|HTTPS| Ngrok
+    Ngrok <-->|Port 8080| FastAPI
+    
+    %% API Routing Layer
+    subgraph API_Layer ["AWS API Routing"]
+        APIG["Amazon API Gateway<br/>(API Key Auth)"]:::api
+    end
+    
+    %% External Data
+    YahooFinance["Yahoo Finance API<br/>(yfinance)"]:::external
+    FastAPI -->|/api/market| YahooFinance
+    
+    %% Core AWS Infrastructure Layer
+    subgraph Serverless_Compute ["Serverless Compute & Logic"]
+        LambdaChat["Lambda: Portfolio Chat<br/>& Context Injector"]:::compute
+        Lambda360["Lambda: Client 360<br/>& Meeting Prep"]:::compute
+        LambdaRev["Lambda: Revenue<br/>Enablement"]:::compute
+        LocalEngine["Local Python Compliance<br/>Rule Engine"]:::compute
+    end
+    
+    %% Local APIs
+    FastAPI -->|/api/chat| APIG
+    FastAPI -->|/api/client360| APIG
+    FastAPI -->|/api/revenue| APIG
+    FastAPI -->|/api/compliance| LocalEngine
+    FastAPI -->|/api/life-events| CRM["clients.json<br/>(Mock CRM)"]:::data
+    
+    APIG --> LambdaChat
+    APIG --> Lambda360
+    APIG --> LambdaRev
+    
+    %% AI Inference Layer
+    subgraph GenAI ["Generative AI Platform"]
+        Bedrock{"Amazon Bedrock<br/>(Meta Llama 3.1 8B)"}:::ai
+    end
+    
+    LambdaChat <--> Bedrock
+    Lambda360 <--> Bedrock
+    LambdaRev <--> Bedrock
+    
+    %% Vector Database / RAG Layer
+    subgraph RAG_Layer ["RAG Infrastructure"]
+        RAGServer["FastAPI RAG Server<br/>(EC2 :8000)"]:::compute
+        ChromaDB[("ChromaDB<br/>Vector Store")]:::data
+        S3[("Amazon S3<br/>(Research PDFs)")]:::data
+    end
+    
+    FastAPI -->|/api/rag| RAGServer
+    RAGServer <--> ChromaDB
+    RAGServer <--> Bedrock
+    ChromaDB -.->|Embedded from| S3
+    
+    %% Persistence & Audit Layer
+    subgraph Persistence ["Data & Audit Persistence"]
+        DBSessions[("DynamoDB<br/>(advisor-ai-sessions)")]:::data
+        DBMetrics[("DynamoDB<br/>(advisor-ai-metrics)")]:::data
+        DBSupervision[("DynamoDB<br/>(advisor-ai-supervision)")]:::data
+        CloudWatch[("Amazon CloudWatch<br/>(Compliance Logs)")]:::data
+    end
+    
+    LambdaChat <--> DBSessions
+    Bedrock -.->|Telemetry Data| DBMetrics
+    LocalEngine --> CloudWatch
+    Lambda360 -.->|Blocked Advice| DBSupervision
+    LocalEngine -.->|Flags Violation| DBSupervision
+
+    %% Dashboard / Stats
+    FastAPI -->|/api/observability| DBMetrics
+    FastAPI -->|/api/supervision| DBSupervision
 ```
 
 ---
