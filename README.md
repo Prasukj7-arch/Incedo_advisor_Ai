@@ -34,6 +34,8 @@ Password: <set via WEB_PASSWORD env var — see .env.example>
 15. [Documentation Index](#documentation-index)
 16. [KPIs Addressed](#kpis-addressed)
 
+> **Latest Features:** Feature 11 (Live Indian Market Data) and Feature 12 (Proactive Life-Event Alerts) were added in May 2026, directly addressing Sections 4.4 and 4.2 of the problem statement.
+
 ---
 
 ## Project Overview
@@ -47,6 +49,8 @@ Advisor AI is an **AI-powered financial advisor concierge** that allows financia
 - Track AI observability metrics including tokens, cost, and latency
 - Interact using voice input and auto-spoken responses
 - Enforce human-in-the-loop supervision for high-risk AI recommendations
+- **View live Indian market indices (Nifty 50, Sensex, Nifty Bank) updating every 5 minutes**
+- **See proactive life-event alert cards for every client on the home dashboard**
 
 Everything runs on AWS managed services with a professional glassmorphism web interface, secured behind HTTP Basic Authentication, and served over HTTPS via ngrok.
 
@@ -251,6 +255,62 @@ A dedicated AI-powered tab that generates 4 ranked, personalized cross-sell and 
 
 ---
 
+### Feature 11 — Live Indian Market Data
+**Problem statement reference:** Section 4.4 (Conversational Search over Market Data), Section 5.2 (Unified Data Access Layer)
+
+Real-time Indian stock market data is integrated at two levels — the dashboard and the AI chat — using the `yfinance` library with no paid API key required.
+
+**Dashboard ticker (visual layer):**
+- A glassmorphic `Indian Market Pulse` bar displays below the KPI cards on the Executive Dashboard
+- Shows Nifty 50, Sensex, and Nifty Bank indices with live prices and colour-coded percentage changes (green = up, red = down)
+- Blinking live status indicator (animated dot) confirms the feed is active
+- Auto-refreshes every 5 minutes without any page reload
+
+**Portfolio Chat context injection (AI layer):**
+- When an advisor asks a market-related question (e.g. "What is the Nifty 50 today?"), the system intercepts the query
+- Live prices are fetched from Yahoo Finance and injected into the Llama 3.1 prompt as a `[LIVE INDIAN MARKET DATA]` context block
+- Llama responds with the actual, live index number and portfolio-specific recommendations based on the market movement
+- Verified live response: *"The Nifty 50 is currently at 23,756.10, up 0.45%..."* with client-specific advice
+
+**Example interaction:**
+- Advisor asks: `"What is the current Nifty 50 level and how should I position my clients?"`
+- AI responds with the actual live number + personalized advice for Priya, Rahul, and Anita
+
+**API endpoint:** `GET /api/market`
+
+**Tech:** `yfinance` (no API key), `fast_info.last_price`, `fast_info.previous_close`
+
+---
+
+### Feature 12 — Proactive Life-Event Alerts
+**Problem statement reference:** Section 4.2 (Client Intelligence — Life-Event Detection)
+
+The Executive Dashboard now surfaces **6 proactive, colour-coded alert cards** the moment the advisor logs in — without the advisor having to ask anything. This closes the Section 4.2 life-event detection requirement.
+
+**What appears on the dashboard:**
+
+| Severity | Client | Life Event | Advisor Action |
+|---|---|---|---|
+| 🔴 Danger | Anita Desai | Recently widowed | Immediate outreach: compliance check on account ownership change & capital preservation review |
+| 🟡 Warning | Rahul Mehta | Recent startup liquidity event | Fresh capital deployment review: schedule ESOP & wealth accumulation advisory |
+| 🟡 Warning | Rahul Mehta | Getting married in Dec 2025 | Prepare Wedding Fund SIP and schedule tax optimization review |
+| 🔵 Info | Priya Sharma | Daughter starting college in 2026 | Review and reallocate Daughter Education Fund |
+| 🔵 Info | Priya Sharma | Planning home purchase in 2027 | Assess mortgage suitability and structured equity withdrawal options |
+| 🔵 Info | Anita Desai | Son settled abroad | Discuss NRI tax implications and update beneficiary designations |
+
+**Severity levels:**
+- 🔴 **Danger** — Immediate advisor action required (blinking red dot indicator)
+- 🟡 **Warning** — High-priority upcoming event (amber border)
+- 🔵 **Info** — Medium-term planning event (blue border)
+
+**Sorted by urgency** — danger cards always appear first.
+
+**API endpoint:** `GET /api/life-events`
+
+**Data source:** `data/clients.json` — all life events sourced from CRM data, no hardcoding
+
+---
+
 ## Architecture
 
 ![Architecture Diagram](./Architecture_Diagram.png)
@@ -296,7 +356,13 @@ FastAPI Server (fast_app.py) ← HTTP Basic Auth
         ├── /api/observability ───────→ DynamoDB scan → advisor-ai-metrics
         |
         ├── /api/supervision/pending ─→ DynamoDB scan → advisor-ai-supervision
-        └── /api/supervision/action ──→ DynamoDB update → CloudWatch audit log
+        ├── /api/supervision/action ──→ DynamoDB update → CloudWatch audit log
+        |
+        ├── /api/market ─────────────→ yfinance (Yahoo Finance) → Nifty 50, Sensex, Nifty Bank
+        |                               (no API key required — live prices every 5 min)
+        |
+        └── /api/life-events ─────────→ data/clients.json → structured alert payloads
+                                        (6 events, severity-sorted: danger > warning > info)
 ```
 
 ---
@@ -476,7 +542,8 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # 3. Install dependencies
-pip install fastapi uvicorn requests python-dotenv boto3 fpdf2 pypdf chromadb
+pip install -r requirements.txt
+# Includes: fastapi, uvicorn, requests, python-dotenv, boto3, yfinance, fpdf2, pypdf, chromadb
 
 # 4. Create .env file
 cp .env.example .env
@@ -669,6 +736,30 @@ Body: {"client_name": "Priya"}
 Response: {"client_name": "Priya Sharma", "aum": 800000, "risk_profile": "Moderate", "opportunities": [{"product": "...", "priority": "HIGH", "revenue_impact": "₹20 lakh / year", "rationale": "...", "compliance": "SUITABLE"}]}
 ```
 
+### Live Market Data
+```
+GET /api/market
+Response: {
+  "indices": [
+    {"name": "Nifty 50", "symbol": "^NSEI", "price": 23775.75, "change_pct": 0.54, "direction": "up", "fetched_at": "08:43 UTC"},
+    {"name": "Sensex", "symbol": "^BSESN", "price": 75641.62, "change_pct": 0.61, "direction": "up", "fetched_at": "08:43 UTC"},
+    {"name": "Nifty Bank", "symbol": "^NSEBANK", "price": 54059.65, "change_pct": 1.08, "direction": "up", "fetched_at": "08:43 UTC"}
+  ]
+}
+```
+
+### Proactive Life-Event Alerts
+```
+GET /api/life-events
+Response: {
+  "events": [
+    {"client_id": "C003", "client_name": "Anita Desai", "event": "Recently widowed", "category": "Urgent Care", "severity": "danger", "action": "Immediate outreach: compliance check on account ownership change & capital preservation review."},
+    {"client_id": "C002", "client_name": "Rahul Mehta",  "event": "Getting married in Dec 2025", "category": "Tax & Planning", "severity": "warning", "action": "Prepare Wedding Fund SIP and schedule tax optimization review."},
+    ...
+  ]
+}
+```
+
 ### System Status
 ```
 GET /api/status
@@ -709,6 +800,8 @@ From Section 12 of the problem statement:
 | Portfolio scenario planning | Scenario Simulator allows instant what-if analysis before any client meeting |
 | Proactive advisor intelligence | Executive Dashboard surfaces risks and opportunities before the advisor asks |
 | Revenue per advisor | Revenue Enablement surfaces ₹ lakh-level cross-sell opportunities tied to real life events |
+| **Live market data queries (Sec 4.4)** | **Advisor can ask "What is the Nifty 50 today?" — Llama responds with the actual live number + portfolio advice** |
+| **Life-event detection (Sec 4.2)** | **6 colour-coded proactive alert cards on dashboard surface client life events with specific advisor actions** |
 
 ---
 
