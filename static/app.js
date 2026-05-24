@@ -41,10 +41,11 @@ function showToast(message, type = 'info', duration = 4000) {
 
 // ── Global Rate Limiting System (Anti-Spam) ────────────────────────────────
 const RateLimiter = {
-    clicks: [],
+    actionClicks: [],
+    navClicks: [],
     isBlocked: false,
     
-    checkClick(event) {
+    checkClick(event, type) {
         if (this.isBlocked) {
             event.preventDefault();
             event.stopPropagation();
@@ -53,12 +54,18 @@ const RateLimiter = {
         }
         
         const now = Date.now();
+        let clicksArray = type === 'action' ? this.actionClicks : this.navClicks;
+        
         // Keep clicks from the last 4 seconds (4000ms)
-        this.clicks = this.clicks.filter(t => now - t <= 4000);
-        this.clicks.push(now);
+        clicksArray = clicksArray.filter(t => now - t <= 4000);
+        clicksArray.push(now);
+        
+        // Update the respective state array
+        if (type === 'action') this.actionClicks = clicksArray;
+        else this.navClicks = clicksArray;
         
         // 4 continuous clicks within 4 seconds triggers the block
-        if (this.clicks.length >= 4) {
+        if (clicksArray.length >= 4) {
             this.isBlocked = true;
             showToast("Too many requests! System locked for 10 seconds to prevent spam.", "error", 10000);
             
@@ -69,7 +76,8 @@ const RateLimiter = {
             
             setTimeout(() => {
                 this.isBlocked = false;
-                this.clicks = [];
+                this.actionClicks = [];
+                this.navClicks = [];
                 mainContent.style.pointerEvents = "auto";
                 mainContent.style.opacity = "1";
                 showToast("Rate limit lifted. You may resume.", "success");
@@ -85,10 +93,17 @@ const RateLimiter = {
 
 // Intercept clicks in the capturing phase before they reach specific button handlers
 document.addEventListener('click', (e) => {
+    // Check if clicked element is an action button
     const btn = e.target.closest('button');
-    // Only apply rate limiting to API action buttons (submits, generation, searches). Do NOT block navigation tabs.
-    if (btn && (btn.type === 'submit' || btn.id.includes('submit') || btn.id.includes('generate') || btn.id.includes('search'))) {
-        RateLimiter.checkClick(e);
+    const isAction = btn && (btn.type === 'submit' || btn.id.includes('submit') || btn.id.includes('generate') || btn.id.includes('search'));
+    
+    // Check if clicked element is a navigation tab
+    const navTab = e.target.closest('.nav-item');
+    
+    if (isAction) {
+        RateLimiter.checkClick(e, 'action');
+    } else if (navTab) {
+        RateLimiter.checkClick(e, 'nav');
     }
 }, true);
 
