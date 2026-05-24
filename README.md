@@ -311,6 +311,20 @@ The Executive Dashboard now surfaces **6 proactive, colour-coded alert cards** t
 
 ---
 
+### Feature 13 — Dual-Track Anti-Spam Rate Limiter
+**Problem statement reference:** Section 5.5 (Governance & Risk Controls — System Protection)
+
+To protect the AWS API Gateway from brute-force spam and unexpected billing spikes, the frontend implements an intelligent, dual-track rate limiter.
+
+**How it works:**
+- **Action Buttons:** If an advisor clicks an API-triggering button (e.g., Chat 'Send', 'Generate Brief') 4 times within 4 seconds, the system intercepts the calls and visually locks the screen for 10 seconds.
+- **Navigation Tabs:** UI navigation (sidebar tabs) has a completely separate counter. Spamming the sidebar 4 times will lock the UI, but mixed clicks (e.g., 3 tab clicks + 1 API click) will safely bypass the lock.
+- **Visual Feedback:** Shows a red alert toast and dims the main content area to physically prevent further interactions until the 10-second penalty expires.
+
+**Tech:** Pure JavaScript interceptor applied to the `document` capturing phase.
+
+---
+
 ## Architecture
 
 ```mermaid
