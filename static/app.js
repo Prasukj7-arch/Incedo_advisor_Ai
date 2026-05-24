@@ -53,12 +53,12 @@ const RateLimiter = {
         }
         
         const now = Date.now();
-        // Keep clicks from the last 3 seconds (3000ms)
-        this.clicks = this.clicks.filter(t => now - t <= 3000);
+        // Keep clicks from the last 4 seconds (4000ms)
+        this.clicks = this.clicks.filter(t => now - t <= 4000);
         this.clicks.push(now);
         
-        // 3 continuous clicks within 3 seconds triggers the block
-        if (this.clicks.length >= 3) {
+        // 4 continuous clicks within 4 seconds triggers the block
+        if (this.clicks.length >= 4) {
             this.isBlocked = true;
             showToast("Too many requests! System locked for 10 seconds to prevent spam.", "error", 10000);
             
@@ -86,8 +86,8 @@ const RateLimiter = {
 // Intercept clicks in the capturing phase before they reach specific button handlers
 document.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
-    // Only apply rate limiting to action buttons (submits, generation, searches)
-    if (btn && (btn.type === 'submit' || btn.id.includes('submit') || btn.id.includes('generate') || btn.id.includes('search') || btn.id.includes('btn'))) {
+    // Only apply rate limiting to API action buttons (submits, generation, searches). Do NOT block navigation tabs.
+    if (btn && (btn.type === 'submit' || btn.id.includes('submit') || btn.id.includes('generate') || btn.id.includes('search'))) {
         RateLimiter.checkClick(e);
     }
 }, true);
