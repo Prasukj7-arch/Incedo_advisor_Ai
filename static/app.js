@@ -39,6 +39,60 @@ function showToast(message, type = 'info', duration = 4000) {
     }, duration);
 }
 
+// ── Global Rate Limiting System (Anti-Spam) ────────────────────────────────
+const RateLimiter = {
+    clicks: [],
+    isBlocked: false,
+    
+    checkClick(event) {
+        if (this.isBlocked) {
+            event.preventDefault();
+            event.stopPropagation();
+            showToast("Rate limit exceeded. Please wait 10 seconds.", "error", 2000);
+            return false;
+        }
+        
+        const now = Date.now();
+        // Keep clicks from the last 3 seconds (3000ms)
+        this.clicks = this.clicks.filter(t => now - t <= 3000);
+        this.clicks.push(now);
+        
+        // 3 continuous clicks within 3 seconds triggers the block
+        if (this.clicks.length >= 3) {
+            this.isBlocked = true;
+            showToast("Too many requests! System locked for 10 seconds to prevent spam.", "error", 10000);
+            
+            // Visually disable the main content area to enforce the block
+            const mainContent = document.querySelector('main') || document.body;
+            mainContent.style.pointerEvents = "none";
+            mainContent.style.opacity = "0.5";
+            
+            setTimeout(() => {
+                this.isBlocked = false;
+                this.clicks = [];
+                mainContent.style.pointerEvents = "auto";
+                mainContent.style.opacity = "1";
+                showToast("Rate limit lifted. You may resume.", "success");
+            }, 10000);
+            
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        }
+        return true;
+    }
+};
+
+// Intercept clicks in the capturing phase before they reach specific button handlers
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    // Only apply rate limiting to action buttons (submits, generation, searches)
+    if (btn && (btn.type === 'submit' || btn.id.includes('submit') || btn.id.includes('generate') || btn.id.includes('search') || btn.id.includes('btn'))) {
+        RateLimiter.checkClick(e);
+    }
+}, true);
+
+
 // ── Dynamic Session ID — unique per browser tab, persisted across page loads ─
 const SESSION_ID = (() => {
     const key = 'advisor_ai_session_id';
