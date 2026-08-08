@@ -16,18 +16,16 @@
 }
 
 body.light-theme {
-    --bg-dark: #f1f5f9;
-    --bg-card: rgba(255, 255, 255, 0.7);
-    --text-main: #0f172a;
-    --text-muted: #475569;
-    --accent: #0284c7;
-    --border-color: rgba(0, 0, 0, 0.1);
-    --sidebar-bg: rgba(255, 255, 255, 0.8);
-    --msg-ai-bg: rgba(0, 0, 0, 0.03);
-    --btn-secondary-bg: rgba(0, 0, 0, 0.05);
-    --btn-secondary-hover: rgba(0, 0, 0, 0.1);
+    /* Use the magic invert hack to flip all hardcoded dark Tailwind classes perfectly! */
+    filter: invert(1) hue-rotate(180deg);
+    background-color: #0f172a; /* keep it dark underneath for the invert to work */
 }
 
+/* Un-invert images or specific things if necessary */
+body.light-theme img,
+body.light-theme .text-blue-500 {
+    filter: invert(1) hue-rotate(180deg);
+}
 
 body {
     font-family: 'Inter', sans-serif;
