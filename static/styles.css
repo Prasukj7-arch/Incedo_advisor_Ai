@@ -16,15 +16,36 @@
 }
 
 body.light-theme {
-    /* Use the magic invert hack to flip all hardcoded dark Tailwind classes perfectly! */
-    filter: invert(1) hue-rotate(180deg);
-    background-color: #0f172a; /* keep it dark underneath for the invert to work */
+    --bg-dark: #f8fafc;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --accent: #0ea5e9;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --sidebar-bg: rgba(248, 250, 252, 0.95);
+    --msg-ai-bg: rgba(0, 0, 0, 0.03);
+    --btn-secondary-bg: rgba(0, 0, 0, 0.04);
+    --btn-secondary-hover: rgba(0, 0, 0, 0.08);
+    
+    background-color: var(--bg-dark);
+    background-image: 
+        radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.05), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.05), transparent 25%);
 }
 
-/* Un-invert images or specific things if necessary */
-body.light-theme img,
-body.light-theme .text-blue-500 {
-    filter: invert(1) hue-rotate(180deg);
+/* ── Force Tailwind Overrides for Light Theme ── */
+body.light-theme .text-white { color: #0f172a !important; }
+body.light-theme .text-gray-200 { color: #1e293b !important; }
+body.light-theme .text-gray-300 { color: #334155 !important; }
+body.light-theme .text-gray-400 { color: #475569 !important; }
+body.light-theme .text-gray-500 { color: #64748b !important; }
+body.light-theme .border-gray-800,
+body.light-theme .border-gray-800\/30,
+body.light-theme .border-gray-700\/50 { border-color: rgba(0, 0, 0, 0.08) !important; }
+body.light-theme .bg-black\/20 { background-color: rgba(0, 0, 0, 0.03) !important; }
+body.light-theme .bg-gray-700 { background-color: #cbd5e1 !important; }
+body.light-theme .glass {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 body {
