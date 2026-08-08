@@ -54,7 +54,7 @@
         @keyframes toast-out { from { opacity:1; transform: translateX(0); } to { opacity:0; transform: translateX(100%); } }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden text-gray-200">
+<body class="flex h-screen overflow-hidden">
 
     <!-- Toast Notification Container -->
     <div id="toast-container"></div>
@@ -168,11 +168,18 @@
                     </div>
                 </div>
 
-                <!-- VOICE SETTINGS -->
+                <!-- PREFERENCES -->
                 <div class="p-4 border-t border-gray-800">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 px-2">Voice Settings</p>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 px-2">Preferences</p>
+                    <div class="flex items-center justify-between px-2 mb-3">
+                        <span class="text-xs text-[var(--text-main)]">Light Theme</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="theme-toggle" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
                     <div class="flex items-center justify-between px-2">
-                        <span class="text-xs text-gray-300">Auto-Speak Response</span>
+                        <span class="text-xs text-[var(--text-main)]">Auto-Speak</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="voice-toggle" class="sr-only peer">
                             <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>

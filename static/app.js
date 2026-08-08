@@ -193,6 +193,24 @@ const chatHistory = document.getElementById('chat-history');
 const chatSubmit = document.getElementById('chat-submit');
 const micBtn = document.getElementById('mic-btn');
 const voiceToggle = document.getElementById('voice-toggle');
+const themeToggle = document.getElementById('theme-toggle');
+
+// ── Theme Setup ────────────────────────────────────────────────────────────
+const savedTheme = localStorage.getItem('advisor_theme');
+if (savedTheme === 'light') {
+    document.body.classList.add('light-theme');
+    themeToggle.checked = true;
+}
+
+themeToggle.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        document.body.classList.add('light-theme');
+        localStorage.setItem('advisor_theme', 'light');
+    } else {
+        document.body.classList.remove('light-theme');
+        localStorage.setItem('advisor_theme', 'dark');
+    }
+});
 
 // Voice Recognition Setup
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
