@@ -50,7 +50,16 @@ body.light-theme .bg-black\/20,
 body.light-theme .bg-black\/30,
 body.light-theme .bg-gray-800\/40,
 body.light-theme .bg-gray-800\/50,
-body.light-theme .bg-white\/5 { background-color: rgba(0, 0, 0, 0.04) !important; }
+body.light-theme .bg-white\/5,
+body.light-theme .bg-slate-900\/40 { background-color: rgba(0, 0, 0, 0.04) !important; }
+
+/* Better contrast for colored text/icons in light mode */
+body.light-theme .text-blue-400, body.light-theme .text-blue-500 { color: #0369a1 !important; }
+body.light-theme .text-amber-400, body.light-theme .text-amber-500 { color: #b45309 !important; }
+body.light-theme .text-rose-400, body.light-theme .text-rose-500 { color: #be123c !important; }
+body.light-theme .text-emerald-400, body.light-theme .text-emerald-500 { color: #047857 !important; }
+body.light-theme .text-green-400, body.light-theme .text-green-500 { color: #15803d !important; }
+body.light-theme .text-red-400, body.light-theme .text-red-500 { color: #b91c1c !important; }
 
 body.light-theme .bg-gray-700 { background-color: #cbd5e1 !important; }
 
